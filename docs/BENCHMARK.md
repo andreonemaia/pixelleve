@@ -76,7 +76,7 @@ SHA-256 `e52b7ffe1f8459b2c98bdcd82d44db20060be09312728d400be5b08172b45939`. Barr
 | Saída | 8321 bytes |
 | Tempo do item | 191 ms |
 | Lote com duas cópias e um JPEG inválido no meio | 932 ms até a fila esvaziar |
-| Pixels | A soma dos canais RGBA do original e do resultado coincidiu. Não foi inspeção visual |
+| Pixels | Nesta rodada, só a soma dos canais RGBA coincidiu. Isso não prova que os pixels sejam iguais. A verificação canal a canal está na seção seguinte |
 | Alpha do canto | 0 nos dois |
 | Nova tentativa | A entrada continuou 392397 bytes e a saída 8321. A linha seguiu em “Economizou” |
 | Interface | 56 quadros de `requestAnimationFrame` durante essa página. Não é medição de memória |
@@ -97,6 +97,27 @@ Três imagens convertidas para WebP, com `foto.png` e `foto.jpg` na mesma pasta.
 
 O teste com limite artificial `0` continua separado. Outro teste alocou `LIMITE_ZIP_BYTES + 1` (256 MiB + 1 byte), escreveu um byte a cada página de 4096 e conferiu que `montarZip` recusa antes de chamar `zipSync`. Isso não mede o pico de compactar um ZIP desse tamanho, nem um lote real de imagens.
 
+## Pixels e redimensionamento em 9 de outubro de 2026
+
+O mesmo `grade-media.png` (SHA-256 acima) foi lido de novo no preview de produção. Entrada 392397 bytes, saída 8321 bytes, item em 165 ms, lote em 938 ms, 53 quadros de `requestAnimationFrame`. As duas imagens foram desenhadas no tamanho natural e lidas com `getImageData`. A comparação percorreu largura, altura e cada valor RGBA. Elas coincidiram, e o alpha do canto continuou 0. Um teste de unidade mostra que duas amostras com a mesma soma e pixels trocados são rejeitadas. A soma da rodada anterior deixa de ser evidência de equivalência.
+
+O redimensionamento usa média por área, com alpha reto, no worker, antes de codificar. Não é `@jsquash/resize` nem Canvas. Imagens sintéticas, preset Leve, formato original, salvo o JPEG indicado:
+
+| Caso | Resultado |
+| --- | --- |
+| 200×100, largura máxima 100 | 100×50 |
+| 100×200, altura máxima 80 | 40×80 |
+| 200×100 dentro de 50×80 | 50×25, sem recorte |
+| 40×30 dentro de 200×180 | Permaneceu 40×30 |
+| 100×33, largura máxima 10 | 10×3 |
+| 30×15, largura 12 e nova tentativa com largura 8 | Os pixels bateram com um único redimensionamento do original |
+| 32×32 com borda transparente, largura 16 | PNG: canto com alpha 0 e centro opaco. JPEG com fundo `#000000`: canto escuro e centro vermelho |
+| Fila | Grade 1600×1200 manteve 1600×1200. O arquivo seguinte, 200×100, saiu 100×50 depois que o limite foi ligado durante o primeiro item |
+| ZIP | `horizontal.png` extraído em 100×50, com a mesma quantidade de bytes da linha. A economia usou esses bytes, não o tamanho do ZIP |
+| Comparação | Seta direita moveu o slider, o foco ficou visível, “100%” mostrou 200 px e 100 px sem esticar, o arraste moveu as duas imagens juntas e Escape devolveu o foco |
+
+`0` e `1.5` na largura máxima impediram o processamento. O lado máximo aceito na interface é 16384 px, junto dos limites de 40 MiB e 24 megapixels. Não houve medição de pico de memória.
+
 ## O que continua sem medição
 
-Fotos reais, capturas com texto pequeno, arquivos já comprimidos por câmera ou por outro programa, imagens perto de 40 MiB ou 24 megapixels, EXIF, orientação e GPS. Arraste de uma pasta a partir do Explorer. Inspeção visual de artefatos. Pico de memória do navegador.
+Fotos reais, capturas com texto pequeno, arquivos já comprimidos por câmera ou por outro programa, imagens perto de 40 MiB ou 24 megapixels, EXIF, orientação e GPS. Arraste de uma pasta a partir do Explorer. Inspeção visual de artefatos em fotos. Zoom do navegador a 200% e leitor de tela. Pico de memória do navegador.

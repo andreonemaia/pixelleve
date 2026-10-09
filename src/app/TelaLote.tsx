@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
+import { lerLimiteOpcional, LIMITE_LADO, montarLimites } from '../core/dimensoes'
 import type { FormatoSaida, Preset } from '../core/tipos'
 import { contarFila, textoContagem, textoProgresso } from '../core/fila'
 import { formatarPercentual } from '../core/metricas'
@@ -42,6 +43,17 @@ export function TelaLote() {
   const prontos = fila.itens.filter(itemPronto)
   const selecionados = prontos.filter((item) => item.selecionado)
   const somaProntos = prontos.reduce((total, item) => total + (item.resultado?.bytesSaida ?? 0), 0)
+  const limites = montarLimites({
+    manterDimensoes: fila.manterDimensoes,
+    textoLargura: fila.textoLargura,
+    textoAltura: fila.textoAltura,
+  })
+
+  const definirComparandoId = fila.definirComparandoId
+  const fecharComparacao = useCallback(() => {
+    definirComparandoId(null)
+    focoRef.current?.focus()
+  }, [definirComparandoId])
 
   function aoSoltar(evento: DragEvent<HTMLDivElement>) {
     evento.preventDefault()
@@ -151,7 +163,9 @@ export function TelaLote() {
             Arrastar pastas não está disponível neste navegador. Use Escolher imagens para selecionar vários arquivos.
           </p>
         ) : null}
-        <p className="nota">PNG, JPEG e WebP estáticos. Até 40 MiB e 24 megapixels por imagem.</p>
+        <p className="nota">
+          PNG, JPEG e WebP estáticos. Até 40 MiB, 24 megapixels e {LIMITE_LADO.toLocaleString('pt-BR')} px de lado.
+        </p>
       </section>
 
       <section className="painel">
@@ -176,6 +190,37 @@ export function TelaLote() {
             <option value="maxima">Máxima redução</option>
           </select>
         </label>
+        <label className="campo campo-check">
+          <input
+            id="manter-dimensoes"
+            type="checkbox"
+            checked={fila.manterDimensoes}
+            onChange={(evento) => fila.definirManterDimensoes(evento.target.checked)}
+          />
+          Manter dimensões originais
+        </label>
+        <label className="campo">
+          Largura máxima
+          <input
+            id="largura-maxima"
+            type="text"
+            inputMode="numeric"
+            value={fila.textoLargura}
+            aria-invalid={!fila.manterDimensoes && !lerLimiteOpcional(fila.textoLargura, 'largura').ok}
+            onChange={(evento) => fila.definirTextoLargura(evento.target.value)}
+          />
+        </label>
+        <label className="campo">
+          Altura máxima
+          <input
+            id="altura-maxima"
+            type="text"
+            inputMode="numeric"
+            value={fila.textoAltura}
+            aria-invalid={!fila.manterDimensoes && !lerLimiteOpcional(fila.textoAltura, 'altura').ok}
+            onChange={(evento) => fila.definirTextoAltura(evento.target.value)}
+          />
+        </label>
         {pedeFundo ? (
           <label className="campo">
             Cor de fundo
@@ -187,6 +232,11 @@ export function TelaLote() {
             />
           </label>
         ) : null}
+        {!limites.ok ? <p className="aviso" role="alert">{limites.mensagem}</p> : null}
+        <p className="nota">
+          A proporção é mantida e imagens menores não são ampliadas. Com largura e altura, a imagem cabe nos dois sem
+          recorte. Enquanto “Manter dimensões originais” estiver marcado, esses limites não entram no processamento.
+        </p>
         <p className="nota">
           {fila.formato === 'png'
             ? 'PNG sem perdas preserva os pixels. O preset muda o esforço da otimização, não a qualidade visual.'
@@ -241,7 +291,7 @@ export function TelaLote() {
             type="button"
             className="principal"
             onClick={() => void fila.comprimirLote()}
-            disabled={contagem.aguardando === 0 || fila.processando}
+            disabled={contagem.aguardando === 0 || fila.processando || !limites.ok}
           >
             Comprimir lote
           </button>
@@ -278,10 +328,7 @@ export function TelaLote() {
           focoRef.current = origem
           fila.definirComparandoId(id)
         }}
-        aoFecharComparacao={() => {
-          fila.definirComparandoId(null)
-          focoRef.current?.focus()
-        }}
+        aoFecharComparacao={fecharComparacao}
         aoRemover={fila.remover}
         aoTentarNovamente={fila.tentarNovamente}
         aoAlternarSelecao={fila.alternarSelecao}

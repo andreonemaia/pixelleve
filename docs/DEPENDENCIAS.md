@@ -21,14 +21,14 @@ TypeScript 7.0.2 é a versão `latest` no npm, mas `typescript-eslint` 8.71.1 de
 | Vite | Build e worker | 8.3.4 | MIT | Build de produção gerou os WASM |
 | @vitejs/plugin-react | JSX | 6.1.2 | MIT | Em uso |
 | TypeScript | Contratos strict | 6.0.3 | Apache-2.0 | Em uso |
-| Vitest | Testes de funções | 5.0.3 | MIT | 9 testes passaram |
+| Vitest | Testes de funções | 5.0.3 | MIT | 34 testes passaram em 9 de outubro de 2026 |
 | ESLint / @eslint/js | Lint | 10.12.0 / 10.0.1 | MIT | Passou |
 | typescript-eslint | Lint TypeScript | 8.71.1 | MIT | Passou |
 | eslint-plugin-react-hooks | Hooks | 7.1.1 | MIT | Passou |
 | globals | Ambiente do lint | 17.13.0 | MIT | Em uso |
 | @types/react, @types/react-dom | Tipos | 19.3.0 | MIT | Em uso |
 | @types/node | Tipos Node | 24.19.1 | MIT | Em uso |
-| Playwright | Teste no Chrome | 1.64.0 | Apache-2.0 | 8 testes passaram no preview |
+| Playwright | Teste no Chrome | 1.64.0 | Apache-2.0 | 21 testes passaram no preview em 9 de outubro de 2026 |
 | @jsquash/jpeg | MozJPEG | 1.6.0 | Apache-2.0 no pacote | Encoder/decoder no worker |
 | @jsquash/webp | libwebp | 1.5.0 | Apache-2.0 no pacote | Encoder/decoder no worker |
 | @jsquash/png | PNG decode/encode | 3.1.1 | Apache-2.0 no pacote | Usado para decodificar e para PNG vindo de outro formato |
@@ -59,7 +59,7 @@ O build de produção emite os WASM em `dist/assets` e o worker em um chunk loca
 | Item | Estado |
 | --- | --- |
 | Tailwind CSS | Não instalado; a tela usa CSS próprio |
-| @jsquash/resize | Pendente, junto com R05 |
+| @jsquash/resize | Não instalado. O redimensionamento usa média por área no worker, com alpha reto, para ficar determinístico e sem dependência nova |
 | vite-plugin-pwa | Etapa 2 |
 | @jsquash/avif | Etapa 3 |
 | Tauri 2 | Etapa 4 |

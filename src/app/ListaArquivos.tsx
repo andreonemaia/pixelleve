@@ -46,6 +46,8 @@ export function ListaArquivos({
             data-caminho={item.caminhoRelativo}
             data-bytes-entrada={item.arquivo.size}
             data-bytes-saida={item.resultado?.bytesSaida}
+            data-largura-saida={item.resultado?.largura}
+            data-altura-saida={item.resultado?.altura}
           >
             <input
               type="checkbox"
@@ -82,9 +84,16 @@ export function ListaArquivos({
               {item.resultado ? (
                 <span data-teste="duracao">{item.resultado.duracaoMs} ms</span>
               ) : null}
-              {item.resultado ? (
-                <span data-teste="dimensoes">
-                  {item.resultado.largura}×{item.resultado.altura} · {item.resultado.mime}
+              {item.inspecao || item.resultado ? (
+                <span
+                  data-teste="dimensoes"
+                  data-largura-saida={item.resultado?.largura}
+                  data-altura-saida={item.resultado?.altura}
+                >
+                  {item.inspecao ? `${item.inspecao.largura}×${item.inspecao.altura}` : ''}
+                  {item.resultado
+                    ? `${item.inspecao ? ' → ' : ''}${item.resultado.largura}×${item.resultado.altura} · ${item.resultado.mime}`
+                    : ''}
                 </span>
               ) : null}
               {item.resultado?.usouOriginal ? <span className="meta">Já estava otimizada</span> : null}

@@ -6,11 +6,13 @@ import {
   decodificarImagem,
   otimizarPng,
 } from '../codecs/codecs'
+import { calcularDimensoes, limiteDimensaoValido } from '../core/dimensoes'
 import { escolherSaida } from '../core/escolherSaida'
 import { ErroMotor } from '../core/erros'
 import { inspecionarImagem, LIMITE_PIXELS } from '../core/inspecionar'
 import { nivelOxiPng, qualidadeDoPreset } from '../core/presets'
 import type { FormatoImagem, OpcoesProcessamento, SaidaMotor } from '../core/tipos'
+import { redimensionarRgba } from './redimensionar'
 
 const DESCRICAO_SAIDA: Record<FormatoImagem, { mime: string; extensao: string }> = {
   jpeg: { mime: 'image/jpeg', extensao: 'jpg' },
@@ -34,8 +36,18 @@ export async function processarImagem(
   if (formatoSaida === 'jpeg' && origem.possuiAlpha && !fundoValido(opcoes.fundoJpeg)) {
     throw new ErroMotor('ALPHA_BACKGROUND_REQUIRED')
   }
+  if (!limiteDimensaoValido(opcoes.larguraMaxima) || !limiteDimensaoValido(opcoes.alturaMaxima)) {
+    throw new ErroMotor('INVALID_IMAGE')
+  }
 
-  if (formatoSaida === 'png' && origem.formato === 'png') {
+  const limites = {
+    larguraMaxima: opcoes.larguraMaxima,
+    alturaMaxima: opcoes.alturaMaxima,
+    ampliar: opcoes.ampliar === true,
+  }
+  const previsto = calcularDimensoes(origem.largura, origem.altura, limites)
+
+  if (formatoSaida === 'png' && origem.formato === 'png' && !previsto.redimensionou) {
     const otimizado = await otimizarPng(entrada, nivelOxiPng(opcoes.preset))
     const escolha = escolherSaida(entrada, otimizado, manter)
     conferirArquivo(escolha.bytes, 'png', origem.largura, origem.altura)
@@ -49,15 +61,29 @@ export async function processarImagem(
   const imagem = await decodificarImagem(origem.formato, entrada)
   if (imagem.width * imagem.height > LIMITE_PIXELS) throw new ErroMotor('TOO_LARGE')
 
-  const transparente = possuiTransparencia(imagem.data)
+  const dimensao = calcularDimensoes(imagem.width, imagem.height, limites)
+  if (dimensao.largura * dimensao.altura > LIMITE_PIXELS) throw new ErroMotor('TOO_LARGE')
+  const redimensionada = dimensao.redimensionou
+    ? criarImagem(
+        redimensionarRgba(imagem.data, imagem.width, imagem.height, dimensao.largura, dimensao.altura),
+        dimensao.largura,
+        dimensao.altura,
+      )
+    : imagem
+
+  const transparente = possuiTransparencia(redimensionada.data)
   if (formatoSaida === 'jpeg' && transparente && !fundoValido(opcoes.fundoJpeg)) {
     throw new ErroMotor('ALPHA_BACKGROUND_REQUIRED')
   }
 
   const pixels =
     formatoSaida === 'jpeg' && transparente
-      ? criarImagem(aplicarFundo(imagem.data, imagem.width, imagem.height, opcoes.fundoJpeg ?? ''), imagem.width, imagem.height)
-      : imagem
+      ? criarImagem(
+          aplicarFundo(redimensionada.data, redimensionada.width, redimensionada.height, opcoes.fundoJpeg ?? ''),
+          redimensionada.width,
+          redimensionada.height,
+        )
+      : redimensionada
 
   const qualidade = qualidadeDoPreset(opcoes.preset)
   const codificado =
@@ -67,14 +93,21 @@ export async function processarImagem(
         ? await codificarWebp(pixels, qualidade)
         : await otimizarPng(await codificarPng(pixels), nivelOxiPng(opcoes.preset))
 
-  const escolha = escolherSaida(entrada, codificado, manter)
-  conferirArquivo(escolha.bytes, escolha.usouOriginal ? origem.formato : formatoSaida, imagem.width, imagem.height)
+  const escolha = escolherSaida(entrada, codificado, manter && !dimensao.redimensionou)
+  const larguraFinal = escolha.usouOriginal ? imagem.width : pixels.width
+  const alturaFinal = escolha.usouOriginal ? imagem.height : pixels.height
+  conferirArquivo(escolha.bytes, escolha.usouOriginal ? origem.formato : formatoSaida, larguraFinal, alturaFinal)
 
   const avisos = [
     escolha.usouOriginal
       ? 'Não houve redução. O arquivo original foi mantido, inclusive os metadados.'
       : 'A saída foi recodificada e não inclui EXIF, GPS ou outros metadados do original.',
   ]
+  if (dimensao.redimensionou) {
+    avisos.push(
+      `Redimensionada de ${imagem.width}×${imagem.height} para ${larguraFinal}×${alturaFinal}. A proporção foi mantida${limites.ampliar ? '.' : ' e a imagem não foi ampliada.'}`,
+    )
+  }
   if (formatoSaida === 'jpeg' && transparente) {
     avisos.push('A transparência foi composta sobre a cor de fundo escolhida.')
   }
@@ -82,8 +115,8 @@ export async function processarImagem(
   return montarSaida(
     escolha.bytes,
     entrada.byteLength,
-    imagem.width,
-    imagem.height,
+    larguraFinal,
+    alturaFinal,
     escolha.usouOriginal ? DESCRICAO_SAIDA[origem.formato] : descricao,
     escolha.usouOriginal,
     avisos,

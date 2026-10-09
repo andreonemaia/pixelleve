@@ -22,11 +22,11 @@ O resumo de economia fica em destaque: quantidade, tamanho original, tamanho fin
 
 A lista mostra miniatura sob demanda, nome, caminho relativo, tamanhos, economia, estado e ações. “Comparar” abre diálogo acessível. Não ocultar o nome inteiro sem alternativa acessível.
 
-Painel: formato de saída e preset. Para PNG sem perdas, explicar que a qualidade visual é preservada. Para JPEG e WebP, avisar que há perdas. Para JPEG com transparência, pedir fundo. Dimensões máximas continuam previstas e ainda não estão na tela. Configurações aplicam-se aos próximos jobs; “Tentar novamente” reprocessa o original.
+Painel: formato de saída, preset e dimensões. “Manter dimensões originais” começa marcado. Largura máxima e altura máxima são opcionais, em pixels, e só entram no processamento quando essa opção está desmarcada. Para PNG sem perdas, explicar que a qualidade visual é preservada. Para JPEG e WebP, avisar que há perdas. Para JPEG com transparência, pedir fundo. A linha mostra as dimensões originais e as finais. Configurações aplicam-se aos próximos jobs; “Tentar novamente” reprocessa o original.
 
 ## Comparação
 
-Mesma escala e posição para ambas as imagens; preservar alinhamento quando resize muda dimensões, indicando dimensão de saída. Zoom comum, slider horizontal com teclado e opção alternar Original/Resultado. Fundo quadriculado para transparência. Mostrar formatos, bytes e eventuais avisos de cor.
+Mesma escala e posição para ambas as imagens. O slider horizontal mostra original e resultado, com rótulo, teclado e foco visível. “Ver original” e “Ver resultado” levam o slider às pontas. Zoom e arraste movem as duas juntas. “Ajustar à tela” e “100%” estão sempre visíveis. Em 100%, cada arquivo aparece no próprio tamanho em pixels; um resultado menor não é esticado para cobrir o original. A nota informa dimensões e escalas. Fundo quadriculado para transparência. Mostrar formatos, bytes, economia e eventuais avisos de cor.
 
 Abrir por botão, fechar com Escape, manter foco no diálogo e devolver foco ao botão anterior. Não depender de hover para revelar controles essenciais.
 

@@ -41,7 +41,7 @@ Quando o PNG não requer transformação, preferir otimizar os bytes existentes,
 | WebP | @jsquash/webp com libwebp | Verificar alpha e saída real |
 | PNG encode/decode | @jsquash/png | Usar quando necessário; não substituir otimizador |
 | PNG otimização | @jsquash/oxipng | Sem perdas; validar dependências de threading |
-| Resize | @jsquash/resize ou pipeline nativo validado | Escolher por evidência de qualidade e integração |
+| Resize | Média por área no worker, com alpha reto | `@jsquash/resize` não foi instalado; o cálculo de dimensões fica em `src/core/dimensoes.ts` |
 | AVIF futuro | @jsquash/avif com libavif | Validar tempo, memória e WebView2 antes de ativar |
 | ZIP | fflate como candidato | Validar exportação real e uso de memória |
 

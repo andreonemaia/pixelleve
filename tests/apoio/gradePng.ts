@@ -1,5 +1,27 @@
 import { crc32, deflateSync } from 'node:zlib'
 
+export function pngRgba(
+  largura: number,
+  altura: number,
+  pintar: (x: number, y: number) => [number, number, number, number],
+): Buffer {
+  const canais = 4
+  const bruto = Buffer.alloc(altura * (1 + largura * canais))
+  for (let y = 0; y < altura; y += 1) {
+    const linha = y * (1 + largura * canais)
+    bruto[linha] = 0
+    for (let x = 0; x < largura; x += 1) {
+      const cor = pintar(x, y)
+      const destino = linha + 1 + x * canais
+      bruto[destino] = cor[0]
+      bruto[destino + 1] = cor[1]
+      bruto[destino + 2] = cor[2]
+      bruto[destino + 3] = cor[3]
+    }
+  }
+  return montarPng(largura, altura, bruto)
+}
+
 export function gradePng(largura: number, altura: number): Buffer {
   const canais = 4
   const bruto = Buffer.alloc(altura * (1 + largura * canais))
@@ -15,6 +37,10 @@ export function gradePng(largura: number, altura: number): Buffer {
       bruto[destino + 3] = x < 6 && y < 6 ? 0 : 255
     }
   }
+  return montarPng(largura, altura, bruto)
+}
+
+function montarPng(largura: number, altura: number, bruto: Buffer): Buffer {
   const cabecalho = Buffer.alloc(13)
   cabecalho.writeUInt32BE(largura, 0)
   cabecalho.writeUInt32BE(altura, 4)

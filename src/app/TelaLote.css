@@ -127,12 +127,29 @@ button:disabled {
 }
 
 select,
-input[type='color'] {
+input[type='color'],
+input[type='text'] {
   border: 1px solid #dde5df;
   border-radius: 10px;
   background: #ffffff;
   color: #172a28;
   padding: 8px 10px;
+}
+
+.campo-check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 220px;
+}
+
+button:focus-visible,
+.acao:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #147d64;
+  outline-offset: 2px;
 }
 
 .resumo-topo {
@@ -265,6 +282,71 @@ input[type='color'] {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+}
+
+.comparacao-vista {
+  position: relative;
+  height: min(52vh, 480px);
+  min-height: 220px;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid #dde5df;
+  border-radius: 12px;
+  touch-action: none;
+  cursor: grab;
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, #dde5df 25%, transparent 25%),
+    linear-gradient(-45deg, #dde5df 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #dde5df 75%),
+    linear-gradient(-45deg, transparent 75%, #dde5df 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}
+
+.comparacao-cena {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.comparacao-cena img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  background: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+.comparacao-recorte {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.comparacao-controles,
+.slider-campo {
+  margin-top: 12px;
+}
+
+.comparacao-controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.slider {
+  width: min(100%, 420px);
+  accent-color: #147d64;
 }
 
 .comparacao-grade {

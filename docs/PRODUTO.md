@@ -47,9 +47,10 @@ A fila, a economia e a importação em lote passaram na frente de redimensionar 
 
 - A economia de cada imagem e a do lote usam os bytes reais. O percentual do lote é a soma das entradas contra a soma das saídas. Durante o processamento, “Economia até agora” só inclui pares já concluídos. Itens aguardando, com falha, ignorados ou cancelados aparecem à parte e não entram como saída zero.
 - Dá para escolher várias imagens, escolher uma pasta com subpastas ou arrastar quando o navegador expõe a API. Selecionar a pasta não altera os originais. Arquivo incompatível é ignorado e contado. Arquivo inválido ou animado fica na fila como falha e não interrompe os demais.
-- A fila mostra miniatura sob demanda, caminho relativo, tamanhos, economia, estado e ações de remover, comparar, baixar e tentar novamente. Um worker pesado por vez. Cada job congela formato, preset e fundo e reprocessa a partir do original.
+- A fila mostra miniatura sob demanda, caminho relativo, tamanhos, dimensões originais e finais, economia, estado e ações de remover, comparar, baixar e tentar novamente. Um worker pesado por vez. Cada job congela formato, preset, fundo e limites de dimensão, e reprocessa a partir do original.
 - O ZIP local usa fflate, preserva subpastas, desambigua nomes e deixa de fora falha e cancelamento. Acima de 256 MiB de saídas retidas, a exportação completa é recusada e a pessoa pode baixar uma seleção.
-- A comparação abre ao selecionar a imagem ou em “Comparar”, com fundo quadriculado. Zoom comum e slider por teclado continuam pendentes, assim como o redimensionamento (R05).
+- Dá para manter as dimensões originais, o que vem marcado por padrão, ou informar largura máxima e altura máxima. A proporção é mantida e imagens menores não são ampliadas. Se os dois limites existem, a imagem cabe nos dois sem recorte. Um redimensionamento pedido é entregue mesmo quando o arquivo não fica menor.
+- A comparação abre ao selecionar a imagem ou em “Comparar”, com fundo quadriculado, slider por teclado, zoom sincronizado, “Ajustar à tela” e “100%”. Em 100%, cada imagem usa o próprio tamanho em pixels. Escape fecha o diálogo e devolve o foco. Fotos reais e EXIF continuam sem verificação.
 
 ## Limites técnicos iniciais
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fundoValido } from '../core/alpha'
+import { montarLimites } from '../core/dimensoes'
 import { estadoDeResultado, type EstadoItem } from '../core/fila'
 import { mensagemDoCodigo } from '../core/mensagens'
 import { descreverPar } from '../core/tamanhos'
@@ -51,7 +52,14 @@ export function useFila() {
   const seguirDepoisRef = useRef(false)
   const geracaoRef = useRef(0)
   const importacaoRef = useRef(Promise.resolve())
-  const opcoesRef = useRef({ formato: 'original' as FormatoSaida, preset: 'equilibrado' as Preset, fundo: '' })
+  const opcoesRef = useRef({
+    formato: 'original' as FormatoSaida,
+    preset: 'equilibrado' as Preset,
+    fundo: '',
+    manterDimensoes: true,
+    textoLargura: '',
+    textoAltura: '',
+  })
   const [itens, setItens] = useState<ItemFila[]>([])
   const [ignorados, setIgnorados] = useState(0)
   const [mensagem, setMensagem] = useState('Escolha imagens ou uma pasta. Os originais não são alterados.')
@@ -59,9 +67,12 @@ export function useFila() {
   const [formato, definirFormato] = useState<FormatoSaida>('original')
   const [preset, definirPreset] = useState<Preset>('equilibrado')
   const [fundo, definirFundo] = useState('')
+  const [manterDimensoes, definirManterDimensoes] = useState(true)
+  const [textoLargura, definirTextoLargura] = useState('')
+  const [textoAltura, definirTextoAltura] = useState('')
   const [comparandoId, definirComparandoId] = useState<string | null>(null)
 
-  opcoesRef.current = { formato, preset, fundo }
+  opcoesRef.current = { formato, preset, fundo, manterDimensoes, textoLargura, textoAltura }
 
   const definirItens = useCallback((proximo: ItemFila[] | ((atual: ItemFila[]) => ItemFila[])) => {
     const valor = typeof proximo === 'function' ? proximo(itensRef.current) : proximo
@@ -112,10 +123,18 @@ export function useFila() {
   const processarUm = useCallback(
     async (item: ItemFila) => {
       const revisao = item.revisao
+      const limites = montarLimites(opcoesRef.current)
+      if (!limites.ok) {
+        setMensagem(limites.mensagem)
+        return
+      }
       const opcoes = {
         formato: opcoesRef.current.formato,
         preset: opcoesRef.current.preset,
         fundoJpeg: fundoValido(opcoesRef.current.fundo) ? opcoesRef.current.fundo : undefined,
+        larguraMaxima: limites.larguraMaxima,
+        alturaMaxima: limites.alturaMaxima,
+        ampliar: limites.ampliar,
       }
       if (opcoes.formato === 'jpeg' && item.inspecao?.possuiAlpha && !opcoes.fundoJpeg) {
         const texto = mensagemDoCodigo('ALPHA_BACKGROUND_REQUIRED')
@@ -221,11 +240,21 @@ export function useFila() {
       seguirDepoisRef.current = true
       return
     }
+    const limitesIniciais = montarLimites(opcoesRef.current)
+    if (!limitesIniciais.ok) {
+      setMensagem(limitesIniciais.mensagem)
+      return
+    }
     executandoRef.current = true
     cancelarRef.current = false
     setProcessando(true)
     try {
       while (!cancelarRef.current) {
+        const limites = montarLimites(opcoesRef.current)
+        if (!limites.ok) {
+          setMensagem(limites.mensagem)
+          break
+        }
         const proximo = itensRef.current.find((item) => item.estado === 'aguardando')
         if (!proximo) break
         await processarUm(proximo)
@@ -397,6 +426,12 @@ export function useFila() {
     definirPreset,
     fundo,
     definirFundo,
+    manterDimensoes,
+    definirManterDimensoes,
+    textoLargura,
+    definirTextoLargura,
+    textoAltura,
+    definirTextoAltura,
     comparandoId,
     definirComparandoId,
     importarLista,

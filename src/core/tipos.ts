@@ -18,6 +18,9 @@ export interface OpcoesProcessamento {
   formato: FormatoSaida
   preset: Preset
   fundoJpeg?: string
+  larguraMaxima?: number
+  alturaMaxima?: number
+  ampliar?: boolean
 }
 
 export interface InspecaoImagem {

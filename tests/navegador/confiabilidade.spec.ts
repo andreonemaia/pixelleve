@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { unzipSync } from 'fflate'
 import { expect, test, type Page } from '@playwright/test'
+import { compararPixels } from '../../src/core/pixels'
 import { formatarTamanho } from '../../src/core/tamanhos'
 import { gradePng } from '../apoio/gradePng'
 
@@ -44,12 +45,11 @@ test('processa grades sintéticas maiores em sequência e reprocessa o original'
 
   const linha = page.locator('[data-teste="linha"][data-caminho$="grade-a.png"]')
   await linha.getByRole('button', { name: 'Comparar' }).click()
-  const original = await somaPixels(page, '[data-teste="original"]')
-  const resultado = await somaPixels(page, '[data-teste="resultado"]')
-  expect(resultado.largura).toBe(640)
-  expect(resultado.altura).toBe(480)
-  expect(resultado.soma).toBe(original.soma)
-  expect(resultado.alphaCanto).toBe(0)
+  const original = await lerAmostra(page, '[data-teste="original"]')
+  const resultado = await lerAmostra(page, '[data-teste="resultado"]')
+  const pixels = compararPixels(original, resultado)
+  expect(pixels).toEqual({ iguais: true, motivo: 'iguais' })
+  expect(original.pixels[3]).toBe(0)
   await page.getByRole('button', { name: 'Fechar' }).click()
 
   const entrada = Number(await linha.getAttribute('data-bytes-entrada'))
@@ -72,8 +72,9 @@ test('processa grades sintéticas maiores em sequência e reprocessa o original'
     duracaoMs,
     duracaoLoteMs,
     quadros,
-    pixelsIguais: true,
-    alphaCanto: 0,
+    pixelsIguais: pixels.iguais,
+    comparacaoPixels: 'cada canal RGBA no tamanho natural, via canvas',
+    alphaCanto: original.pixels[3],
     observacao: 'PNG sintético com barras, gradiente e canto transparente. Não é fotografia nem captura de tela.',
   })
 })
@@ -208,20 +209,28 @@ async function lerQuadros(page: Page): Promise<number> {
   return page.evaluate(() => (window as unknown as { __quadros: { quadros: number } }).__quadros.quadros)
 }
 
-async function somaPixels(page: Page, seletor: string) {
-  return page.locator(seletor).evaluate(async (img: HTMLImageElement) => {
+async function lerAmostra(page: Page, seletor: string) {
+  const bruto = await page.locator(seletor).evaluate(async (img: HTMLImageElement) => {
     await img.decode()
     const tela = document.createElement('canvas')
     tela.width = img.naturalWidth
     tela.height = img.naturalHeight
-    const contexto = tela.getContext('2d')
+    const contexto = tela.getContext('2d', { willReadFrequently: true })
     if (!contexto) throw new Error('Canvas indisponível.')
     contexto.drawImage(img, 0, 0)
     const dados = contexto.getImageData(0, 0, tela.width, tela.height).data
-    let soma = 0
-    for (let indice = 0; indice < dados.length; indice += 1) soma = (soma + dados[indice]) >>> 0
-    return { largura: tela.width, altura: tela.height, soma, alphaCanto: dados[3] }
+    let binario = ''
+    const bloco = 0x8000
+    for (let indice = 0; indice < dados.length; indice += bloco) {
+      binario += String.fromCharCode(...dados.subarray(indice, indice + bloco))
+    }
+    return { largura: tela.width, altura: tela.height, base64: btoa(binario) }
   })
+  return {
+    largura: bruto.largura,
+    altura: bruto.altura,
+    pixels: Uint8Array.from(Buffer.from(bruto.base64, 'base64')),
+  }
 }
 
 async function bytesDoLink(linha: ReturnType<Page['locator']>): Promise<number[]> {
