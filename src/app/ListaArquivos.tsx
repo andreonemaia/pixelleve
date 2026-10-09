@@ -14,6 +14,7 @@ interface ListaArquivosProps {
   aoRemover: (id: string) => void
   aoTentarNovamente: (id: string) => void
   aoAlternarSelecao: (id: string) => void
+  aoSalvar?: (item: ItemFila) => void
 }
 
 export function ListaArquivos({
@@ -24,6 +25,7 @@ export function ListaArquivos({
   aoRemover,
   aoTentarNovamente,
   aoAlternarSelecao,
+  aoSalvar,
 }: ListaArquivosProps) {
   const comparando = itens.find((item) => item.id === comparandoId) ?? null
 
@@ -103,9 +105,15 @@ export function ListaArquivos({
                 Comparar
               </button>
               {item.resultado ? (
-                <a data-teste="baixar" className="acao" href={item.resultado.url} download={nomeBaixar}>
-                  Baixar
-                </a>
+                aoSalvar ? (
+                  <button type="button" data-teste="baixar" onClick={() => aoSalvar(item)}>
+                    Salvar
+                  </button>
+                ) : (
+                  <a data-teste="baixar" className="acao" href={item.resultado.url} download={nomeBaixar}>
+                    Baixar
+                  </a>
+                )
               ) : null}
               {item.estado !== 'aguardando' && item.estado !== 'processando' ? (
                 <button type="button" onClick={() => aoTentarNovamente(item.id)}>
@@ -119,7 +127,13 @@ export function ListaArquivos({
           </article>
         )
       })}
-      {comparando ? <Comparacao item={comparando} aoFechar={aoFecharComparacao} /> : null}
+      {comparando ? (
+        <Comparacao
+          item={comparando}
+          aoFechar={aoFecharComparacao}
+          aoSalvar={aoSalvar ? () => aoSalvar(comparando) : undefined}
+        />
+      ) : null}
     </section>
   )
 }

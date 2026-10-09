@@ -1,6 +1,6 @@
 import { unzipSync } from 'fflate'
 import { describe, expect, test } from 'vitest'
-import { caminhoDeSaida, nomesUnicos, sanitizarCaminhoRelativo } from '../../src/core/caminhos'
+import { caminhoDeSaida, evitarNomeReservado, nomesUnicos, proximoNomeLivre, sanitizarCaminhoRelativo } from '../../src/core/caminhos'
 import { aplicarCancelamento, contarFila, textoProgresso } from '../../src/core/fila'
 import { esvaziarLeitor } from '../../src/importacao/esvaziarLeitor'
 import { percorrerEntrada, type EntradaSistema } from '../../src/importacao/percorrerEntrada'
@@ -19,6 +19,16 @@ describe('caminhos e fila', () => {
       'b/foto.webp',
       'a/foto (2).webp',
     ])
+    const ocupados = new Set<string>()
+    const reservar = (caminho: string) => {
+      const livre = proximoNomeLivre(caminho, (candidato) => ocupados.has(candidato.toLowerCase()))
+      ocupados.add(livre.toLowerCase())
+      return livre
+    }
+    expect(reservar('a/foto.webp')).toBe('a/foto.webp')
+    expect(reservar('a/foto.webp')).toBe('a/foto (2).webp')
+    expect(evitarNomeReservado('CON.png')).toBe('CON_.png')
+    expect(proximoNomeLivre('../secreto.png', () => false)).toBe('secreto.png')
   })
 
   test('cancelamento só marca o item em processamento', () => {

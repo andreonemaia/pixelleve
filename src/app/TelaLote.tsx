@@ -10,6 +10,17 @@ import { LIMITE_ZIP_BYTES, montarZip, selecionarParaZip } from '../zip/montarZip
 import { BarraAplicativo } from './BarraAplicativo'
 import { ListaArquivos } from './ListaArquivos'
 import { useFila, type ItemFila } from './usarFila'
+import { caminhoDeSaida } from '../core/caminhos'
+import { ehDesktop } from '../plataforma/ambiente'
+import {
+  bytesDaUrl,
+  escolherImagensNativas,
+  escolherPastaNativa,
+  gravarResultadoNativo,
+  iniciarPastaSaida,
+  mensagemArquivo,
+  salvarBytesNativo,
+} from '../plataforma/nativo'
 
 export function TelaLote() {
   const arquivoRef = useRef<HTMLInputElement>(null)
@@ -21,13 +32,14 @@ export function TelaLote() {
   const [aceitaArraste, setAceitaArraste] = useState(true)
   const [avisoZip, setAvisoZip] = useState('')
   const [exportando, definirExportando] = useState(false)
+  const desktop = ehDesktop()
 
   useEffect(() => {
     const pasta = pastaRef.current
     if (pasta) pasta.webkitdirectory = true
-    setAceitaPasta(navegadorAceitaPasta())
+    setAceitaPasta(desktop || navegadorAceitaPasta())
     setAceitaArraste(navegadorAceitaArrasteDePasta())
-  }, [])
+  }, [desktop])
 
   const contagem = contarFila(
     fila.itens.map((item) => item.estado),
@@ -70,8 +82,92 @@ export function TelaLote() {
 
   function baixarLote(origem: ItemFila[]) {
     definirExportando(true)
+    if (desktop) {
+      void salvarZip(origem).finally(() => definirExportando(false))
+      return
+    }
     try {
       montarDownload(origem)
+    } finally {
+      definirExportando(false)
+    }
+  }
+
+  async function salvarZip(origem: ItemFila[]) {
+    const selecao = selecionarParaZip(origem)
+    const zip = montarZip(selecao.incluidos)
+    if (!zip.ok) {
+      setAvisoZip(
+        zip.motivo === 'memoria'
+          ? `O lote pronto passa de ${formatarTamanho(LIMITE_ZIP_BYTES)}. Selecione parte das imagens e use Baixar seleção.`
+          : 'Não há imagens concluídas para o ZIP.',
+      )
+      return
+    }
+    const resultado = await salvarBytesNativo('pixelleve.zip', zip.bytes)
+    if (resultado !== 'ok') {
+      fila.avisar(mensagemArquivo(resultado, true))
+      return
+    }
+    setAvisoZip(`ZIP com ${zip.caminhos.length} ${zip.caminhos.length === 1 ? 'arquivo' : 'arquivos'}.`)
+  }
+
+  async function aoEscolherImagens() {
+    if (!desktop) {
+      arquivoRef.current?.click()
+      return
+    }
+    const resultado = await escolherImagensNativas((entrada) => fila.importarEntradas([entrada]))
+    if (resultado !== 'ok') fila.avisar(mensagemArquivo(resultado, false))
+  }
+
+  async function aoEscolherPasta() {
+    if (!desktop) {
+      pastaRef.current?.click()
+      return
+    }
+    const resultado = await escolherPastaNativa((entrada) => fila.importarEntradas([entrada]))
+    if (resultado !== 'ok') fila.avisar(mensagemArquivo(resultado, false))
+  }
+
+  async function aoSalvarItem(item: ItemFila) {
+    if (!item.resultado) return
+    definirExportando(true)
+    try {
+      const nome = caminhoDeSaida(item.caminhoRelativo, item.resultado.extensao).split('/').pop() ?? 'imagem'
+      const bytes = await bytesDaUrl(item.resultado.url)
+      const resultado = await salvarBytesNativo(nome, bytes)
+      fila.avisar(resultado === 'ok' ? `Salvo: ${nome}.` : mensagemArquivo(resultado, true))
+    } finally {
+      definirExportando(false)
+    }
+  }
+
+  async function aoSalvarPasta(origem: ItemFila[]) {
+    const prontosOrigem = origem.filter(itemPronto)
+    if (prontosOrigem.length === 0) return
+    definirExportando(true)
+    try {
+      const inicio = await iniciarPastaSaida()
+      if (inicio !== 'ok') {
+        fila.avisar(mensagemArquivo(inicio, true))
+        return
+      }
+      const ocupados = new Set<string>()
+      for (const item of prontosOrigem) {
+        if (!item.resultado) continue
+        const bytes = await bytesDaUrl(item.resultado.url)
+        const resultado = await gravarResultadoNativo(
+          caminhoDeSaida(item.caminhoRelativo, item.resultado.extensao),
+          bytes,
+          ocupados,
+        )
+        if (resultado !== 'ok') {
+          fila.avisar(mensagemArquivo(resultado, true))
+          return
+        }
+      }
+      fila.avisar('Resultados salvos em pasta, sem alterar os originais.')
     } finally {
       definirExportando(false)
     }
@@ -115,7 +211,11 @@ export function TelaLote() {
         </div>
         <p className="local">Processamento no seu dispositivo</p>
       </header>
-      <BarraAplicativo processando={fila.processando} exportando={exportando} />
+      <BarraAplicativo
+        processando={fila.processando}
+        exportando={exportando}
+        quantidadeSessao={fila.itens.length}
+      />
 
       <section
         className={arrastando ? 'entrada arrastando' : 'entrada'}
@@ -129,11 +229,11 @@ export function TelaLote() {
         <h2>Adicionar imagens</h2>
         <p>Arraste imagens ou uma pasta. Escolher uma pasta não altera os arquivos originais.</p>
         <div className="acoes-entrada">
-          <button type="button" onClick={() => arquivoRef.current?.click()}>
+          <button type="button" onClick={() => void aoEscolherImagens()}>
             Escolher imagens
           </button>
           {aceitaPasta ? (
-            <button type="button" onClick={() => pastaRef.current?.click()}>
+            <button type="button" onClick={() => void aoEscolherPasta()}>
               Escolher pasta
             </button>
           ) : null}
@@ -311,15 +411,20 @@ export function TelaLote() {
             Cancelar
           </button>
           <button type="button" onClick={() => baixarLote(fila.itens)} disabled={prontos.length === 0 || somaProntos > LIMITE_ZIP_BYTES}>
-            Baixar lote em ZIP
+            {desktop ? 'Salvar lote em ZIP' : 'Baixar lote em ZIP'}
           </button>
           <button
             type="button"
             onClick={() => baixarLote(fila.itens.filter((item) => item.selecionado))}
             disabled={selecionados.length === 0}
           >
-            Baixar seleção
+            {desktop ? 'Salvar seleção' : 'Baixar seleção'}
           </button>
+          {desktop ? (
+            <button type="button" onClick={() => void aoSalvarPasta(prontos)} disabled={prontos.length === 0}>
+              Salvar em pasta
+            </button>
+          ) : null}
           <button type="button" onClick={fila.limpar} disabled={fila.itens.length === 0 || fila.processando}>
             Limpar
           </button>
@@ -344,6 +449,7 @@ export function TelaLote() {
         aoRemover={fila.remover}
         aoTentarNovamente={fila.tentarNovamente}
         aoAlternarSelecao={fila.alternarSelecao}
+        aoSalvar={desktop ? (item) => void aoSalvarItem(item) : undefined}
       />
     </main>
   )

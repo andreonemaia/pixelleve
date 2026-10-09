@@ -280,11 +280,12 @@ export function useFila() {
             ignoradosNovos += 1
             continue
           }
+          const tamanho = entrada.tamanho ?? arquivo.size
           let bytes: Uint8Array | null = null
-          if (arquivo.size > 0 && arquivo.size <= LIMITE_BYTES) {
+          if (tamanho > 0 && tamanho <= LIMITE_BYTES && arquivo.size > 0) {
             bytes = new Uint8Array(await arquivo.arrayBuffer())
           }
-          const classe = classificarArquivo(arquivo.name, arquivo.type, arquivo.size, bytes)
+          const classe = classificarArquivo(arquivo.name, arquivo.type, tamanho, bytes)
           if (classe.tipo === 'ignorado') {
             ignoradosNovos += 1
             continue
@@ -313,9 +314,8 @@ export function useFila() {
           )
         } else if (novos.length === 0) setMensagem('Nenhuma imagem encontrada.')
         else {
-          setMensagem(
-            novos.length === 1 ? '1 imagem na fila.' : `${novos.length} imagens na fila.`,
-          )
+          const total = itensRef.current.length
+          setMensagem(total === 1 ? '1 imagem na fila.' : `${total} imagens na fila.`)
         }
       })
       return importacaoRef.current
@@ -407,6 +407,10 @@ export function useFila() {
     [definirItens],
   )
 
+  const avisar = useCallback((texto: string) => {
+    setMensagem(texto)
+  }, [])
+
   useEffect(() => {
     return () => {
       for (const item of itensRef.current) {
@@ -442,5 +446,7 @@ export function useFila() {
     tentarNovamente,
     limpar,
     alternarSelecao,
+    importarEntradas,
+    avisar,
   }
 }

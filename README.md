@@ -2,14 +2,14 @@
 
 Aplicação planejada para comprimir, converter e redimensionar imagens para sites. Interface em português, processamento local, lotes e comparação entre original e resultado.
 
-**Estado atual: lote no navegador, com redimensionamento, comparação e PWA no build de produção.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo, redimensionar e baixar o resultado ou um ZIP. A comparação abre sob demanda. O serviço de desenvolvimento não prova o modo offline. A instalação pelo diálogo do Chrome e o clique em “Atualizar agora” ainda não foram executados nesta máquina. Ainda não é o aplicativo completo e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
+**Estado atual: lote no navegador, PWA no build web e instalador Windows sem assinatura.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo, redimensionar e baixar o resultado ou um ZIP. No desktop, os mesmos passos usam diálogos nativos e uma pasta de saída. A comparação abre sob demanda. O preview sem rede e o aviso de atualização da PWA foram exercitados no Chrome automatizado. A instalação pelo diálogo nativo da PWA e a janela instalada da PWA ainda não foram executadas. O instalador Windows abre, mas o processamento dentro do WebView2 ainda não foi testado. Ainda não é o aplicativo completo e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
 
 ## Decisões iniciais
 
 - Uma base React + TypeScript + Vite.
 - Processamento real com WebAssembly em Web Workers.
 - JPEG, PNG e WebP no MVP; AVIF em etapa posterior.
-- PWA antes de aplicativo Windows com Tauri.
+- A web e a PWA vieram primeiro. O Windows reutiliza a mesma aplicação com Tauri.
 - Sem backend obrigatório, login, API paga ou telemetria.
 - Sem quotas comerciais; proteções técnicas contra excesso de memória.
 - Original preservado; saídas nunca sobrescrevem entradas automaticamente.
@@ -32,7 +32,7 @@ Aplicação planejada para comprimir, converter e redimensionar imagens para sit
 
 ## Estrutura planejada
 
-Um projeto Vite simples, sem monorepo no início. O Cursor criará `src/`, testes e configuração durante a etapa 0. `src-tauri/` só será criado na etapa 4.
+Um projeto Vite na raiz, com `src/` para a interface e o motor, e `src-tauri/` para a janela Windows. O build web sai em `dist`. O build desktop sai em `dist-desktop` e não registra service worker.
 
 ## Comandos
 
@@ -60,13 +60,24 @@ npm run preview
 | `npm run lint` | ESLint |
 | `npm test` | Vitest, sem navegador |
 | `npm run test:motor` | Build e testes do motor no Google Chrome instalado |
+| `npm run desktop:dev` | Janela Windows com o Vite em `http://localhost:1420` |
+| `npm run desktop:build` | Frontend local, executável e instalador NSIS |
 
-`npm run test:motor` depende do Google Chrome instalado. Ele gera o build e abre o preview em `http://127.0.0.1:4173`. Esse endereço, ou outro HTTPS, é o que vale para a PWA. `npm run dev` não registra o service worker.
+`npm run test:motor` depende do Google Chrome instalado. Ele gera o build e abre o preview em `http://127.0.0.1:4173`. Esse endereço, ou outro HTTPS, é o que vale para a PWA. `npm run dev` não registra o service worker. Um teste nesse Chrome não comprova o WebView2.
 
-Para instalar no Windows, sirva o build e abra no Chrome ou no Edge. Se o botão “Instalar aplicativo” aparecer, use-o. Se não aparecer, abra o menu do navegador e escolha Instalar PixelLeve. Espere “Pronto para usar offline” antes de desligar a rede. Feche o aplicativo, desconecte a rede e abra de novo. Uma atualização só deve ser aplicada com a fila parada: o botão “Atualizar agora” recarrega a página e descarta as imagens da sessão.
+Para a PWA, sirva o build web e abra no Chrome ou no Edge. Se o botão “Instalar aplicativo” aparecer, use-o. Se não aparecer, abra o menu do navegador e escolha Instalar PixelLeve. Espere “Pronto para usar offline” antes de desligar a rede. Feche o aplicativo, desconecte a rede e abra de novo. “Atualizar agora” só fica disponível com o lote e a exportação parados. Se a sessão ainda tem imagens ou resultados, a tela avisa a perda e oferece continuar na versão atual. Aceitar recarrega e descarta essa sessão.
+
+Para o Windows, com Rust, ferramentas C++ do alvo MSVC e WebView2:
+
+```text
+npm run desktop:dev
+npm run desktop:build
+```
+
+O instalador sai em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.0_x64-setup.exe`. Ele não está assinado e instala só para o usuário atual. Feche o Vite, instale, desconecte a rede e abra o PixelLeve instalado. Escolha imagens e uma pasta, salve um arquivo, o ZIP e uma pasta de saída, cancele um diálogo e tente uma pasta sem permissão. Esse roteiro ainda não foi executado por completo nesta máquina: a janela instalada abriu com o Vite parado, e o processamento no WebView2 continua pendente. Se o WebView2 não estiver instalado, o instalador tenta baixar o bootstrapper e precisa de rede nessa etapa.
 
 ## Publicação e contribuição
 
-Hospedagem estática é suficiente para a versão web. O repositório público e os pushes iniciais foram autorizados na tarefa de abertura do projeto. Domínio, hospedagem da aplicação, releases e pushes posteriores dependem de uma solicitação explícita.
+Hospedagem estática é suficiente para a versão web. O repositório público e os pushes iniciais foram autorizados na tarefa de abertura do projeto. O push desta etapa desktop também foi autorizado. Domínio, hospedagem da aplicação e release pública do instalador continuam dependendo de uma solicitação explícita.
 
 A licença do código do projeto ainda não foi escolhida. As licenças de bibliotecas e binários WASM precisam ser registradas desde a prova técnica. Não incluir fotos privadas ou resultados pessoais no repositório.

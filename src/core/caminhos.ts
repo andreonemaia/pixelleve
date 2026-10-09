@@ -32,6 +32,33 @@ export function caminhoDeSaida(caminhoRelativo: string, extensao: string): strin
   return `${pasta}${nomeDeSaida(nome, extensao)}`
 }
 
+const NOMES_RESERVADOS = new Set([
+  'con', 'prn', 'aux', 'nul',
+  'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+  'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9',
+])
+
+export function evitarNomeReservado(caminho: string): string {
+  return caminho.split('/').map((parte) => {
+    const ponto = parte.lastIndexOf('.')
+    const base = ponto > 0 ? parte.slice(0, ponto) : parte
+    const extensao = ponto > 0 ? parte.slice(ponto) : ''
+    if (!NOMES_RESERVADOS.has(base.toLowerCase())) return parte
+    return `${base}_${extensao}`
+  }).join('/')
+}
+
+export function proximoNomeLivre(caminho: string, ocupado: (candidato: string) => boolean): string {
+  const seguro = evitarNomeReservado(sanitizarCaminhoRelativo(caminho))
+  let candidato = seguro
+  let indice = 2
+  while (ocupado(candidato)) {
+    candidato = comSufixo(seguro, indice)
+    indice += 1
+  }
+  return candidato
+}
+
 export function nomesUnicos(caminhos: readonly string[]): string[] {
   const usados = new Set<string>()
   return caminhos.map((caminho) => {
