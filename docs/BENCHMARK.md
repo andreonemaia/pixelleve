@@ -51,4 +51,52 @@ O JPEG com transparência só foi gerado depois da escolha explícita de fundo. 
 
 ## O que estas medições não dizem
 
-Não houve inspeção visual ampliada de pele, texto pequeno fotografado ou gradiente de câmera. Não há métrica perceptual. Não há arquivo grande, EXIF, GPS, ICC ou CMYK. A comparação externa com TinyPNG continua pendente. Não extrapolar estes tempos nem estes percentuais para outros computadores ou para imagens de sites reais.
+Não houve inspeção visual ampliada de pele, texto pequeno fotografado ou gradiente de câmera. Não há métrica perceptual. Não há arquivo grande perto do teto de 40 MiB ou 24 megapixels, nem EXIF, GPS, ICC ou CMYK. A comparação externa com TinyPNG continua pendente. Não extrapolar estes tempos nem estes percentuais para outros computadores ou para imagens de sites reais.
+
+## Rodada de confiabilidade em 9 de outubro de 2026
+
+Não há fotografias, capturas de tela reais nem arquivos já comprimidos de câmera no repositório. As medições abaixo usam grades PNG sintéticas, geradas na hora do teste e gravadas só em `test-results/`, que não entra no Git. Elas não descrevem fotos.
+
+| Campo | Valor |
+| --- | --- |
+| Comando | `npx vitest run`, `npx eslint .` e `npm run test:motor` |
+| Navegador | Chrome/156.0.8078.4, o mesmo canal da sessão anterior |
+| Máquina | Windows, AMD Ryzen 7 5700X, `os.totalmem()` = 34244354048 bytes |
+| Suíte | Vitest: 21 testes. Playwright: 14 testes. Vite 8.3.4 |
+
+Na mesma execução, `texto.png` repetiu 151 → 107 bytes. A primeira chamada levou 39 ms e as três seguintes 2 ms, 2 ms e 2 ms.
+
+### grade-media.png, 640×480, manter PNG, preset Equilibrado
+
+SHA-256 `e52b7ffe1f8459b2c98bdcd82d44db20060be09312728d400be5b08172b45939`. Barras, variação de cor e canto transparente. Não é captura de tela.
+
+| Medida | Valor |
+| --- | --- |
+| Entrada | 392397 bytes |
+| Saída | 8321 bytes |
+| Tempo do item | 191 ms |
+| Lote com duas cópias e um JPEG inválido no meio | 932 ms até a fila esvaziar |
+| Pixels | A soma dos canais RGBA do original e do resultado coincidiu. Não foi inspeção visual |
+| Alpha do canto | 0 nos dois |
+| Nova tentativa | A entrada continuou 392397 bytes e a saída 8321. A linha seguiu em “Economizou” |
+| Interface | 56 quadros de `requestAnimationFrame` durante essa página. Não é medição de memória |
+
+O JPEG inválido ficou em falha e as duas grades terminaram. A queda de 392397 para 8321 bytes vem de um PNG sintético pouco compactado. Não vale como economia de foto ou de captura já otimizada.
+
+### grade-grande.png, 1600×1200, cancelamento
+
+SHA-256 `7dc00e1310490a5c91e9a8b78bdec81666633b0716e5b2e9a0788f46714fb9a3`. Entrada de 1096820 bytes. Preset inicial Máxima, formato original, para segurar o OxiPNG.
+
+O teste esperou o estado “processando”, aguardou 500 ms e o estado continuava “processando”. O contador de quadros foi de 2 para 32 nesse intervalo. Em seguida o formato mudou para WebP, o preset para Leve, e o cancelamento foi clicado. Dois segundos depois a linha seguia cancelada, sem link de download. A segunda imagem, `texto.png`, continuava aguardando.
+
+“Tentar novamente” produziu WebP de 345150 bytes em 281 ms, não o PNG que estava em andamento. `texto.png` também saiu em WebP, então o worker recriado processou o item seguinte. Não houve pico de memória medido. O método foi o contador de quadros e o estado da fila.
+
+### ZIP e limite
+
+Três imagens convertidas para WebP, com `foto.png` e `foto.jpg` na mesma pasta. O ZIP extraído tinha `album/dup/foto.webp`, `album/dup/foto (2).webp` e `album/outra/grade.webp`. A soma dos bytes exibidos foi 47702. O arquivo ZIP tinha 48080 bytes. O status da economia continha o tamanho das imagens, não o do ZIP.
+
+O teste com limite artificial `0` continua separado. Outro teste alocou `LIMITE_ZIP_BYTES + 1` (256 MiB + 1 byte), escreveu um byte a cada página de 4096 e conferiu que `montarZip` recusa antes de chamar `zipSync`. Isso não mede o pico de compactar um ZIP desse tamanho, nem um lote real de imagens.
+
+## O que continua sem medição
+
+Fotos reais, capturas com texto pequeno, arquivos já comprimidos por câmera ou por outro programa, imagens perto de 40 MiB ou 24 megapixels, EXIF, orientação e GPS. Arraste de uma pasta a partir do Explorer. Inspeção visual de artefatos. Pico de memória do navegador.

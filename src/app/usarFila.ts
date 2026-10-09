@@ -48,6 +48,8 @@ export function useFila() {
   const itensRef = useRef<ItemFila[]>([])
   const cancelarRef = useRef(false)
   const executandoRef = useRef(false)
+  const seguirDepoisRef = useRef(false)
+  const geracaoRef = useRef(0)
   const importacaoRef = useRef(Promise.resolve())
   const opcoesRef = useRef({ formato: 'original' as FormatoSaida, preset: 'equilibrado' as Preset, fundo: '' })
   const [itens, setItens] = useState<ItemFila[]>([])
@@ -68,14 +70,18 @@ export function useFila() {
   }, [])
 
   const criarWorker = useCallback(() => {
+    const geracao = geracaoRef.current + 1
+    geracaoRef.current = geracao
     const worker = new Worker(new URL('../workers/processar.worker.ts', import.meta.url), { type: 'module' })
     worker.onmessage = (evento: MessageEvent<RespostaWorker>) => {
+      if (geracao !== geracaoRef.current) return
       const pendente = pendenteRef.current
       if (!pendente) return
       pendenteRef.current = null
       pendente.resolve(evento.data)
     }
     worker.onerror = () => {
+      if (geracao !== geracaoRef.current) return
       const pendente = pendenteRef.current
       if (!pendente) return
       pendenteRef.current = null
@@ -141,10 +147,23 @@ export function useFila() {
           worker.postMessage(pedido, [pedido.bytes])
         })
         if (cancelarRef.current) return
+        if (resposta.jobId !== item.id || resposta.revisao !== revisao) {
+          atualizar(item.id, revisao, (atual) =>
+            atual.estado === 'processando'
+              ? {
+                  ...atual,
+                  estado: 'falha',
+                  mensagem: 'O resultado chegou fora de ordem.',
+                  conclusao: atual.conclusao + 1,
+                }
+              : atual,
+          )
+          return
+        }
         const vigente = itensRef.current.find((candidato) => candidato.id === item.id)
         if (!vigente || vigente.revisao !== revisao || vigente.estado !== 'processando') return
-        if (resposta.tipo === 'erro' || resposta.revisao !== revisao) {
-          const texto = resposta.tipo === 'erro' ? resposta.mensagem : 'O resultado chegou fora de ordem.'
+        if (resposta.tipo === 'erro') {
+          const texto = resposta.mensagem
           atualizar(item.id, revisao, (atual) => ({
             ...atual,
             estado: 'falha',
@@ -198,7 +217,10 @@ export function useFila() {
   )
 
   const comprimirLote = useCallback(async () => {
-    if (executandoRef.current) return
+    if (executandoRef.current) {
+      seguirDepoisRef.current = true
+      return
+    }
     executandoRef.current = true
     cancelarRef.current = false
     setProcessando(true)
@@ -210,7 +232,10 @@ export function useFila() {
       }
     } finally {
       executandoRef.current = false
+      const seguir = seguirDepoisRef.current
+      seguirDepoisRef.current = false
       setProcessando(false)
+      if (seguir) void comprimirLote()
     }
   }, [processarUm])
 
@@ -286,6 +311,7 @@ export function useFila() {
 
   const cancelar = useCallback(() => {
     cancelarRef.current = true
+    seguirDepoisRef.current = false
     const pendente = pendenteRef.current
     pendenteRef.current = null
     pendente?.reject(new Error('cancelado'))

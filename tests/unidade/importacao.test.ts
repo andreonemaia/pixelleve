@@ -4,7 +4,7 @@ import { caminhoDeSaida, nomesUnicos, sanitizarCaminhoRelativo } from '../../src
 import { aplicarCancelamento, contarFila, textoProgresso } from '../../src/core/fila'
 import { esvaziarLeitor } from '../../src/importacao/esvaziarLeitor'
 import { percorrerEntrada, type EntradaSistema } from '../../src/importacao/percorrerEntrada'
-import { montarZip, selecionarParaZip } from '../../src/zip/montarZip'
+import { LIMITE_ZIP_BYTES, montarZip, selecionarParaZip } from '../../src/zip/montarZip'
 
 describe('caminhos e fila', () => {
   test('preserva subpastas ao sanitizar', () => {
@@ -92,6 +92,18 @@ describe('zip', () => {
     const recusado = montarZip([{ caminho: 'a.png', bytes: Uint8Array.from([1]) }], 0)
     expect(recusado.ok).toBe(false)
     if (!recusado.ok) expect(recusado.motivo).toBe('memoria')
+  })
+
+  test('recusa a soma real acima de 256 MiB antes de montar o zip', () => {
+    const bytes = new Uint8Array(LIMITE_ZIP_BYTES + 1)
+    for (let indice = 0; indice < bytes.length; indice += 4096) bytes[indice] = 1
+    bytes[bytes.length - 1] = 1
+    const resultado = montarZip([{ caminho: 'grande.png', bytes }])
+    expect(resultado.ok).toBe(false)
+    if (!resultado.ok) {
+      expect(resultado.motivo).toBe('memoria')
+      expect(resultado.bytes).toBe(LIMITE_ZIP_BYTES + 1)
+    }
   })
 
   test('deixa falha e cancelamento fora do arquivo', () => {
