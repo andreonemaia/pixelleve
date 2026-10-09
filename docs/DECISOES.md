@@ -32,6 +32,10 @@ Arquivos permanecem na sessão; preferências podem persistir. Cache offline per
 
 PixelLeve e paleta neutra/verde petróleo são propostas para permitir desenvolvimento imediato. Nome não passou por verificação de marca ou disponibilidade de domínio. Não criar domínio ou branding definitivo agora.
 
+## D09 Prova técnica com OxiPNG single-thread e TypeScript 6.0.3
+
+A etapa 0 chama o build `codec/pkg` do `@jsquash/oxipng` 2.3.0, sem o pacote paralelo. Assim o preview não precisa de COOP/COEP. JPEG e WebP usam os módulos Emscripten com `locateFile` apontando para os WASM emitidos pelo Vite. TypeScript ficou em 6.0.3 porque o `typescript-eslint` instalado não aceita a 7.0.2.
+
 ## Questões abertas
 
 - Resultado do script Python atual do usuário e parâmetros que ele utiliza.

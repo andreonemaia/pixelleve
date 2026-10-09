@@ -46,7 +46,7 @@ Criar release, repositório remoto ou publicar apenas em tarefa que inclua essa 
 
 ## Checklist
 
-- [ ] 0 Motor validado em produção
+- [x] 0 Motor validado em produção, com as limitações registradas em STATUS.md
 - [ ] 1 MVP utilizável e verificado
 - [ ] 2 PWA offline verificada
 - [ ] 3 AVIF e modo automático verificados

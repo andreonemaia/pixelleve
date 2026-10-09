@@ -2,7 +2,7 @@
 
 Aplicação planejada para comprimir, converter e redimensionar imagens para sites. Interface em português, processamento local, lotes e comparação entre original e resultado.
 
-**Estado atual: especificação preparada. Não há aplicação executável neste pacote.** Leia [COMECE-AQUI.md](COMECE-AQUI.md) para iniciar no Cursor.
+**Estado atual: prova técnica da etapa 0.** Dá para escolher uma imagem PNG, JPEG ou WebP, processar no navegador e baixar o resultado. Ainda não é o aplicativo completo, não foi verificado offline e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
 
 ## Decisões iniciais
 
@@ -34,21 +34,34 @@ Aplicação planejada para comprimir, converter e redimensionar imagens para sit
 
 Um projeto Vite simples, sem monorepo no início. O Cursor criará `src/`, testes e configuração durante a etapa 0. `src-tauri/` só será criado na etapa 4.
 
-## Comandos futuros
+## Comandos
 
-Os scripts abaixo deverão ser implementados na etapa 0. Eles ainda não existem.
+Na pasta do projeto, com Node.js 20.19+, 22.12+ ou 24:
+
+```text
+npm ci
+npm run dev
+```
+
+`npm run dev` abre o servidor de desenvolvimento. Para conferir o mesmo caminho do teste de produção:
+
+```text
+npm run build
+npm run preview
+```
 
 | Comando | Objetivo |
 | --- | --- |
-| `npm install` | Instalar dependências na primeira montagem |
-| `npm ci` | Instalação reproduzível após existir lockfile |
+| `npm ci` | Instala a partir do lockfile |
 | `npm run dev` | Desenvolvimento |
-| `npm run build` | Gerar distribuição |
-| `npm run preview` | Servir o build para verificar WASM e PWA |
-| `npm run typecheck` | Verificação TypeScript |
-| `npm run lint` | Verificação estática |
-| `npm test` | Testes de unidades |
-| `npm run test:e2e` | Fluxos reais no navegador, a partir da etapa 1 |
+| `npm run build` | Typecheck e distribuição em `dist` |
+| `npm run preview` | Serve o build local |
+| `npm run typecheck` | TypeScript strict |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest, sem navegador |
+| `npm run test:motor` | Build e testes do motor no Google Chrome instalado |
+
+`npm run test:motor` depende do Google Chrome instalado. O fluxo de ponta a ponta da interface, o ZIP e o teste sem rede ficam para as próximas etapas.
 
 ## Publicação e contribuição
 
