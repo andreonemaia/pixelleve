@@ -42,6 +42,10 @@ O pacote `@jsquash/jpeg` inclui MozJPEG/libjpeg-turbo. A distribuição binária
 
 `@jsquash/webp` inclui libwebp, licença BSD. `@jsquash/oxipng` inclui OxiPNG, licença MIT de Joshua Holmer. O codec PNG do Squoosh no pacote `@jsquash/png` está sob a licença BSD do Google. Os wrappers jSquash estão sob Apache-2.0.
 
+## ZIP
+
+`fflate` 0.8.3, licença MIT. O lote é montado no navegador com `zipSync` no nível 0, porque as imagens já estão comprimidas. Não há envio do ZIP nem das imagens a um servidor.
+
 ## Variante WASM usada
 
 OxiPNG roda pelo módulo single-thread `codec/pkg/squoosh_oxipng.js`, com o arquivo `squoosh_oxipng_bg.wasm` importado pelo Vite. Não usamos `pkg-parallel`, então esta prova não exige `SharedArrayBuffer`, COOP nem COEP. O preset Equilibrado usa nível 2; Leve usa 1; Máxima redução usa 3. `optimiseAlpha` fica desligado para não alterar RGB de pixels transparentes.
@@ -54,9 +58,8 @@ O build de produção emite os WASM em `dist/assets` e o worker em um chunk loca
 
 | Item | Estado |
 | --- | --- |
-| Tailwind CSS | Etapa 1, se a interface passar a precisar |
-| @jsquash/resize | Etapa 1 |
-| fflate | Etapa 1 |
+| Tailwind CSS | Não instalado; a tela usa CSS próprio |
+| @jsquash/resize | Pendente, junto com R05 |
 | vite-plugin-pwa | Etapa 2 |
 | @jsquash/avif | Etapa 3 |
 | Tauri 2 | Etapa 4 |

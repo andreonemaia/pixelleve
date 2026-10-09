@@ -14,7 +14,9 @@ AVIF pode ser investigado, mas não deve atrasar nem aparecer como funcionalidad
 
 Implementar direção visual, fila, dropzone, presets, resize, proteção de alpha, comparação e exportação individual/ZIP. Validar estados, cancelamento e reprocessamento.
 
-Concluir quando R01–R12 de PRODUTO.md forem verificados, e testes de fluxos reais mais build passarem. Testar um lote misto de 30 imagens pequenas com um item inválido e continuar a fila. Medir comportamento com arquivos grandes dentro dos limites em máquina registrada.
+Em 9 de outubro de 2026 entrou a fatia pedida primeiro: economia em bytes e percentual, importação múltipla e por pasta, fila com um worker, ZIP e a tela reorganizada. A comparação existente abre em diálogo, com fundo quadriculado, Escape e retorno de foco. Continuam pendentes o redimensionamento, o zoom comum e o slider por teclado. PWA, AVIF e Tauri não entram nesta fatia.
+
+Concluir a etapa quando R01–R12 de PRODUTO.md forem verificados, e testes de fluxos reais mais build passarem. Testar um lote misto de 30 imagens pequenas com um item inválido e continuar a fila. Medir comportamento com arquivos grandes dentro dos limites em máquina registrada.
 
 ## Etapa 2 PWA
 
@@ -47,7 +49,7 @@ Criar release, repositório remoto ou publicar apenas em tarefa que inclua essa 
 ## Checklist
 
 - [x] 0 Motor validado em produção, com as limitações registradas em STATUS.md
-- [ ] 1 MVP utilizável e verificado
+- [ ] 1 MVP utilizável e verificado. Fatia de economia, lote, pasta, fila e ZIP implementada; resize, slider e zoom continuam pendentes
 - [ ] 2 PWA offline verificada
 - [ ] 3 AVIF e modo automático verificados
 - [ ] 4 Windows instalado e testado

@@ -2,7 +2,7 @@
 
 Aplicação planejada para comprimir, converter e redimensionar imagens para sites. Interface em português, processamento local, lotes e comparação entre original e resultado.
 
-**Estado atual: prova técnica da etapa 0.** Dá para escolher uma imagem PNG, JPEG ou WebP, processar no navegador e baixar o resultado. Ainda não é o aplicativo completo, não foi verificado offline e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
+**Estado atual: lote no navegador, ainda sem redimensionar, slider, PWA ou desktop.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo e baixar o resultado ou um ZIP. A comparação abre sob demanda. Ainda não é o aplicativo completo, não foi verificado offline e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
 
 ## Decisões iniciais
 

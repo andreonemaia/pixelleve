@@ -25,8 +25,8 @@ SHA-256 `d0f241d5ec7d1e10699ef5aa325481a22b4bea0f3cab5b40022b11cee837f501`. PNG 
 | --- | --- |
 | Entrada | 151 bytes |
 | Saída nas três repetições | 107, 107 e 107 bytes |
-| Economia exibida | 29,1% menor |
-| Primeira execução, com carga do codec | 45 ms |
+| Economia exibida | Economizou 44 B (29,1%) |
+| Primeira execução, com carga do codec | 40 ms |
 | Três execuções seguintes | 2 ms, 2 ms e 2 ms; mediana 2 ms |
 | Pixels | Iguais ao original no teste do Chrome |
 | Alpha | Não havia |
@@ -37,11 +37,11 @@ Cada linha é uma execução, não uma mediana. O tempo inclui a primeira carga 
 
 | Fixture | SHA-256 | Operação | Entrada | Saída | Texto exibido | Tempo |
 | --- | --- | --- | --- | --- | --- | --- |
-| grafico-alpha.png | `18462a61bf4ab2d0e01fb2e13e3e5104af30734c8239f736cf42b8b177bd1994` | WebP, preset Equilibrado | 123 | 186 | 51,2% maior | 42 ms |
-| grafico-alpha.png | mesmo | JPEG com fundo `#000000` | 123 | 502 | 308,1% maior | 41 ms |
-| foto-sintetica.png | `f32a2af6abc545823086e1d8653a7b2b4135ccf5d71cb5d24f94517f32d8b193` | JPEG, conversão explícita | 5566 | 543 | 90,2% menor | 42 ms |
+| grafico-alpha.png | `18462a61bf4ab2d0e01fb2e13e3e5104af30734c8239f736cf42b8b177bd1994` | WebP, preset Equilibrado | 123 | 186 | Aumentou 63 B (51,2%) | 47 ms |
+| grafico-alpha.png | mesmo | JPEG com fundo `#000000` | 123 | 502 | Aumentou 379 B (308,1%) | 39 ms |
+| foto-sintetica.png | `f32a2af6abc545823086e1d8653a7b2b4135ccf5d71cb5d24f94517f32d8b193` | JPEG, conversão explícita | 5566 | 543 | Economizou 4,9 KB (90,2%) | 42 ms |
 | foto-sintetica.jpg | gerado na execução, não versionado | Manter JPEG | 543 | 543 | Já estava otimizada | 5 ms |
-| foto-sintetica.png | mesmo hash acima | PNG explícito, OxiPNG | 5566 | 199 | 96,4% menor | 44 ms |
+| foto-sintetica.png | mesmo hash acima | PNG explícito, OxiPNG | 5566 | 199 | Economizou 5,2 KB (96,4%) | 46 ms |
 
 `grafico-alpha.png` é 32×32 com canto transparente, um pixel azul com alpha 128 e um pixel vermelho opaco. No WebP, o teste conferiu o canto com alpha menor que 20 e o pixel opaco com alpha maior que 240. Não houve comparação pixel a pixel no WebP com perdas.
 

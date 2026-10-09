@@ -1,30 +1,7 @@
 import { codigoDeExcecao, ErroMotor } from '../core/erros'
 import { mensagemDoCodigo } from '../core/mensagens'
 import { processarImagem } from '../motor/processarImagem'
-import type { OpcoesProcessamento, SaidaMotor } from '../core/tipos'
-
-interface PedidoProcessamento {
-  tipo: 'processar'
-  jobId: string
-  revisao: number
-  opcoes: OpcoesProcessamento
-  bytes: ArrayBuffer
-}
-
-interface RespostaResultado extends SaidaMotor {
-  tipo: 'resultado'
-  jobId: string
-  revisao: number
-  duracaoMs: number
-}
-
-interface RespostaErro {
-  tipo: 'erro'
-  jobId: string
-  revisao: number
-  codigo: string
-  mensagem: string
-}
+import type { PedidoProcessamento, RespostaErro, RespostaResultado } from './protocolo'
 
 interface EscopoWorker {
   onmessage: ((evento: MessageEvent<PedidoProcessamento>) => void) | null

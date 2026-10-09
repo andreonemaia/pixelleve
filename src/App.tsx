@@ -1,5 +1,5 @@
-import { TelaProva } from './app/TelaProva'
+import { TelaLote } from './app/TelaLote'
 
 export function App() {
-  return <TelaProva />
+  return <TelaLote />
 }

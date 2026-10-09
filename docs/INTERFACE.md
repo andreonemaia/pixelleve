@@ -10,17 +10,19 @@ Tokens sugeridos: fundo #F6F7F4, superfície #FFFFFF, texto #172A28, destaque #1
 
 ## Tela inicial
 
-Cabeçalho compacto com nome e indicação “Processamento no seu dispositivo”. Área central ampla para arrastar imagens, com botão “Escolher imagens”. Abaixo, informar formatos aceitos e limites técnicos reais.
+Cabeçalho compacto com o nome e “Processamento no seu dispositivo”. A área de entrada tem “Escolher imagens”, “Escolher pasta” e arrastar imagens ou pastas quando o navegador permitir. Abaixo, formatos aceitos e limites reais. Selecionar uma pasta não altera os originais. Se a seleção de pasta ou o arraste de diretório não existir, a tela explica e oferece a seleção múltipla.
 
-Configuração inicial: manter formato, preset Equilibrado, tamanho original. Botão “Otimizar imagens” fica ativo quando houver itens válidos. Não iniciar conversão irreversível enquanto a pessoa ainda escolhe opções.
+A comparação não ocupa a tela vazia. Ela abre ao selecionar uma imagem ou em “Comparar”.
+
+Configuração inicial: manter formato e preset Equilibrado. “Comprimir lote” fica ativo quando houver itens aguardando. Não iniciar conversão irreversível enquanto a pessoa ainda escolhe opções.
 
 ## Sessão com imagens
 
-No desktop, lista principal à esquerda e painel de configurações à direita. Em telas menores, configurações recolhíveis acima da lista. Rodapé de ações com total original, total de saída e download.
+O resumo de economia fica em destaque: quantidade, tamanho original, tamanho final, economia absoluta e percentual do lote. Durante o processamento o rótulo é “Economia até agora” e só considera pares concluídos. Aguardando, falha, ignorados e cancelados aparecem em contagem separada.
 
-Cada linha mostra thumbnail, nome, formato/dimensões, tamanho inicial/final, economia, estado e ações. “Comparar” abre painel ou diálogo acessível. Não ocultar nome inteiro sem alternativa acessível.
+A lista mostra miniatura sob demanda, nome, caminho relativo, tamanhos, economia, estado e ações. “Comparar” abre diálogo acessível. Não ocultar o nome inteiro sem alternativa acessível.
 
-Painel: formato de saída, preset, dimensões máximas e opções pertinentes ao formato. Para PNG sem perdas, explicar que qualidade visual é preservada. Para JPEG com alpha, pedir fundo. Configurações aplicam-se aos próximos jobs; oferecer ação explícita para reprocessar itens.
+Painel: formato de saída e preset. Para PNG sem perdas, explicar que a qualidade visual é preservada. Para JPEG e WebP, avisar que há perdas. Para JPEG com transparência, pedir fundo. Dimensões máximas continuam previstas e ainda não estão na tela. Configurações aplicam-se aos próximos jobs; “Tentar novamente” reprocessa o original.
 
 ## Comparação
 

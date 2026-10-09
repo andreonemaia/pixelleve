@@ -41,6 +41,16 @@ Na conversão explícita, economia negativa significa aumento: mostrar “18% ma
 Ao manter formato e dimensão, se não reduzir, disponibilizar original com estado “Já estava otimizada” e economia zero.
 Em resize ou conversão solicitados, respeitar a transformação mesmo se aumentar o tamanho.
 
+## Prioridade aplicada em 9 de outubro de 2026
+
+A fila, a economia e a importação em lote passaram na frente de redimensionar e do slider. O que segue vale para o código desta data; não substitui os critérios acima.
+
+- A economia de cada imagem e a do lote usam os bytes reais. O percentual do lote é a soma das entradas contra a soma das saídas. Durante o processamento, “Economia até agora” só inclui pares já concluídos. Itens aguardando, com falha, ignorados ou cancelados aparecem à parte e não entram como saída zero.
+- Dá para escolher várias imagens, escolher uma pasta com subpastas ou arrastar quando o navegador expõe a API. Selecionar a pasta não altera os originais. Arquivo incompatível é ignorado e contado. Arquivo inválido ou animado fica na fila como falha e não interrompe os demais.
+- A fila mostra miniatura sob demanda, caminho relativo, tamanhos, economia, estado e ações de remover, comparar, baixar e tentar novamente. Um worker pesado por vez. Cada job congela formato, preset e fundo e reprocessa a partir do original.
+- O ZIP local usa fflate, preserva subpastas, desambigua nomes e deixa de fora falha e cancelamento. Acima de 256 MiB de saídas retidas, a exportação completa é recusada e a pessoa pode baixar uma seleção.
+- A comparação abre ao selecionar a imagem ou em “Comparar”, com fundo quadriculado. Zoom comum e slider por teclado continuam pendentes, assim como o redimensionamento (R05).
+
 ## Limites técnicos iniciais
 
 Propostas para calibrar: 40 MiB por arquivo; 24 megapixels após ler dimensões; 256 MiB em saídas retidas para exportação ZIP. Uma imagem de 24 MP ocupa cerca de 96 MB apenas em RGBA, além de cópias e memória do codec.

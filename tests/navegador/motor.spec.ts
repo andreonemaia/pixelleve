@@ -35,6 +35,7 @@ test('otimiza PNG sem perdas e preserva os pixels', async ({ page }) => {
   await escolher(page, 'texto.png')
   await page.getByLabel('Formato de saída').selectOption('original')
   await processar(page)
+  await abrirComparacao(page)
   const original = await lerPixels(page, '[data-teste="original"]')
   const resultado = await lerPixels(page, '[data-teste="resultado"]')
   expect(resultado.largura).toBe(80)
@@ -42,7 +43,7 @@ test('otimiza PNG sem perdas e preserva os pixels', async ({ page }) => {
   expect(resultado.pixels).toEqual(original.pixels)
   const bytes = await bytesDaImagem(page, '[data-teste="resultado"]')
   expect(bytes.slice(0, 4)).toEqual([137, 80, 78, 71])
-  await expect(page.getByRole('status')).toContainText(/menor|Já estava otimizada/)
+  await expect(page.getByRole('status')).toContainText(/Economizou|Já estava otimizada|Economia zero/)
   await registrar(page, 'texto.png', 'oxipng manter formato')
 })
 
@@ -50,6 +51,7 @@ test('preserva transparência ao converter para WebP', async ({ page }) => {
   await escolher(page, 'grafico-alpha.png')
   await page.getByLabel('Formato de saída').selectOption('webp')
   await processar(page)
+  await abrirComparacao(page)
   const resultado = await lerPixels(page, '[data-teste="resultado"]')
   expect(resultado.largura).toBe(32)
   expect(resultado.altura).toBe(32)
@@ -65,10 +67,14 @@ test('preserva transparência ao converter para WebP', async ({ page }) => {
 test('exige fundo antes de JPEG com transparência e gera MozJPEG', async ({ page }) => {
   await escolher(page, 'grafico-alpha.png')
   await page.getByLabel('Formato de saída').selectOption('jpeg')
-  await page.getByRole('button', { name: 'Processar' }).click()
+  await processar(page)
   await expect(page.getByRole('status')).toContainText('Escolha uma cor de fundo')
   await page.locator('#fundo').fill('#000000')
-  await processar(page)
+  const linha = page.locator('[data-teste="linha"]').last()
+  const anterior = await linha.getAttribute('data-conclusao')
+  await linha.getByRole('button', { name: 'Tentar novamente' }).click()
+  await expect.poll(async () => linha.getAttribute('data-conclusao'), { timeout: 60_000 }).not.toBe(anterior)
+  await abrirComparacao(page)
   const bytes = await bytesDaImagem(page, '[data-teste="resultado"]')
   expect(bytes[0]).toBe(0xff)
   expect(bytes[1]).toBe(0xd8)
@@ -85,9 +91,11 @@ test('converte foto sintética para JPEG e reprocessa o arquivo gerado', async (
   await escolher(page, 'foto-sintetica.png')
   await page.getByLabel('Formato de saída').selectOption('jpeg')
   await processar(page)
+  await abrirComparacao(page)
   const jpeg = Buffer.from(await bytesDaImagem(page, '[data-teste="resultado"]'))
   expect(jpeg[0]).toBe(0xff)
   await registrar(page, 'foto-sintetica.png', 'jpeg conversao')
+  await page.getByRole('button', { name: 'Fechar' }).click()
   mkdirSync(join(raiz, 'test-results'), { recursive: true })
   const caminho = join(raiz, 'test-results/foto-sintetica.jpg')
   writeFileSync(caminho, jpeg)
@@ -95,14 +103,15 @@ test('converte foto sintética para JPEG e reprocessa o arquivo gerado', async (
   await escolherCaminho(page, caminho)
   await page.getByLabel('Formato de saída').selectOption('original')
   await processar(page)
+  await abrirComparacao(page)
   const saida = Buffer.from(await bytesDaImagem(page, '[data-teste="resultado"]'))
   expect(saida[0]).toBe(0xff)
   expect(saida[1]).toBe(0xd8)
   const pixels = await lerPixels(page, '[data-teste="resultado"]')
   expect(pixels.largura).toBe(48)
   expect(pixels.altura).toBe(48)
-  const status = await page.getByRole('status').innerText()
-  expect(status).toMatch(/menor|maior|Já estava otimizada|Mesmo tamanho/)
+  const status = await page.locator('[data-teste="linha"]').last().innerText()
+  expect(status).toMatch(/Economizou|Aumentou|Já estava otimizada|Economia zero|Mesmo tamanho/)
   await registrar(page, 'foto-sintetica.jpg', 'jpeg manter formato')
 })
 
@@ -110,11 +119,13 @@ test('informa aumento quando a conversão explícita fica maior', async ({ page 
   await escolher(page, 'foto-sintetica.png')
   await page.getByLabel('Formato de saída').selectOption('png')
   await processar(page)
-  const entrada = Number(await page.locator('[data-teste="bytes-entrada"]').getAttribute('data-bytes'))
-  const saida = Number(await page.locator('[data-teste="bytes-saida"]').getAttribute('data-bytes'))
-  const texto = await page.getByRole('status').innerText()
-  if (saida > entrada) expect(texto).toContain('maior')
-  if (saida < entrada) expect(texto).toContain('menor')
+  const linha = page.locator('[data-teste="linha"]').last()
+  const entrada = Number(await linha.getAttribute('data-bytes-entrada'))
+  const saida = Number(await linha.getAttribute('data-bytes-saida'))
+  const texto = await linha.innerText()
+  if (saida > entrada) expect(texto).toContain('Aumentou')
+  if (saida < entrada) expect(texto).toContain('Economizou')
+  await abrirComparacao(page)
   const bytes = await bytesDaImagem(page, '[data-teste="resultado"]')
   expect(bytes.slice(0, 4)).toEqual([137, 80, 78, 71])
   await registrar(page, 'foto-sintetica.png', 'png explicito')
@@ -138,14 +149,19 @@ test('mede três execuções depois do aquecimento', async ({ page }) => {
   await page.getByLabel('Formato de saída').selectOption('original')
   await page.getByLabel('Preset').selectOption('equilibrado')
   await processar(page)
-  const inicializacaoMs = Number((await page.locator('[data-teste="duracao"]').innerText()).replace(' ms', ''))
+  const inicializacaoMs = Number(
+    (await page.locator('[data-teste="linha"]').last().locator('[data-teste="duracao"]').innerText()).replace(' ms', ''),
+  )
 
   const duracoes: number[] = []
   const tamanhos: number[] = []
   for (let vez = 0; vez < 3; vez += 1) {
-    await processar(page)
-    duracoes.push(Number((await page.locator('[data-teste="duracao"]').innerText()).replace(' ms', '')))
-    tamanhos.push(Number(await page.locator('[data-teste="bytes-saida"]').getAttribute('data-bytes')))
+    const linha = page.locator('[data-teste="linha"]').last()
+    const anterior = await linha.getAttribute('data-conclusao')
+    await linha.getByRole('button', { name: 'Tentar novamente' }).click()
+    await expect.poll(async () => linha.getAttribute('data-conclusao'), { timeout: 60_000 }).not.toBe(anterior)
+    duracoes.push(Number((await linha.locator('[data-teste="duracao"]').innerText()).replace(' ms', '')))
+    tamanhos.push(Number(await linha.getAttribute('data-bytes-saida')))
   }
 
   const arquivo = readFileSync(join(fixtures, 'texto.png'))
@@ -173,19 +189,21 @@ async function escolher(page: Page, nome: string) {
 }
 
 async function escolherCaminho(page: Page, caminho: string) {
+  const antes = await page.locator('[data-teste="linha"]').count()
   await page.locator('#arquivo').setInputFiles(caminho)
-  await expect(page.locator('[data-teste="original"]')).toBeVisible()
+  await expect(page.locator('[data-teste="linha"]')).toHaveCount(antes + 1)
 }
 
 async function processar(page: Page) {
-  const resultado = page.locator('[data-teste="resultado"]')
-  const anterior = (await resultado.count()) > 0 ? await resultado.getAttribute('data-revisao') : null
-  await page.getByRole('button', { name: 'Processar' }).click()
-  await expect
-    .poll(async () => page.locator('[data-teste="resultado"]').getAttribute('data-revisao'), {
-      timeout: 60_000,
-    })
-    .not.toBe(anterior)
+  const linha = page.locator('[data-teste="linha"]').last()
+  const anterior = await linha.getAttribute('data-conclusao')
+  await page.getByRole('button', { name: 'Comprimir lote' }).click()
+  await expect.poll(async () => linha.getAttribute('data-conclusao'), { timeout: 60_000 }).not.toBe(anterior)
+}
+
+async function abrirComparacao(page: Page) {
+  await page.locator('[data-teste="linha"]').last().getByRole('button', { name: 'Comparar' }).click()
+  await expect(page.locator('[data-teste="resultado"]')).toBeVisible()
 }
 
 async function lerPixels(page: Page, seletor: string) {
@@ -230,9 +248,10 @@ function temMarcadorAntesDoScan(bytes: number[], marcador: number): boolean {
 }
 
 async function registrar(page: Page, fixture: string, observacao: string) {
-  const entrada = Number(await page.locator('[data-teste="bytes-entrada"]').getAttribute('data-bytes'))
-  const saida = Number(await page.locator('[data-teste="bytes-saida"]').getAttribute('data-bytes'))
-  const duracaoMs = Number((await page.locator('[data-teste="duracao"]').innerText()).replace(' ms', ''))
+  const linha = page.locator('[data-teste="linha"]').last()
+  const entrada = Number(await linha.getAttribute('data-bytes-entrada'))
+  const saida = Number(await linha.getAttribute('data-bytes-saida'))
+  const duracaoMs = Number((await linha.locator('[data-teste="duracao"]').innerText()).replace(' ms', ''))
   const status = await page.getByRole('status').innerText()
   const caminho = join(raiz, 'test-results/amostras.json')
   mkdirSync(join(raiz, 'test-results'), { recursive: true })

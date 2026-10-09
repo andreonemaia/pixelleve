@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
-import './app/TelaProva.css'
+import './app/TelaLote.css'
 
 const raiz = document.getElementById('raiz')
 if (!raiz) throw new Error('Elemento raiz não encontrado.')
