@@ -1,0 +1,41 @@
+# Dependências e saída de build
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Caches, cobertura e logs
+.vite/
+.cache/
+.eslintcache
+coverage/
+playwright-report/
+test-results/
+blob-report/
+*.log
+npm-debug.log*
+
+# Segredos e credenciais
+.env
+.env.*
+!.env.example
+*.pem
+credentials.json
+**/secrets/
+
+# Kit de entrada e arquivos pessoais
+PixelLeve-kit-Cursor.zip
+*.zip
+/fotos/
+/entrada/
+
+# Tauri, quando a etapa desktop existir
+src-tauri/target/
+src-tauri/gen/
+
+# Sistema e editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

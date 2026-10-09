@@ -1,0 +1,25 @@
+---
+description: Requisitos permanentes e fluxo de desenvolvimento do PixelLeve
+alwaysApply: true
+---
+
+# PixelLeve
+
+Leia AGENTS.md e docs/STATUS.md. Consulte docs/PRODUTO.md para requisitos e
+docs/ARQUITETURA.md para contratos. Execute apenas a etapa solicitada.
+
+Processamento local real. Nunca envie imagens ou nomes de arquivos a serviços.
+Sem APIs de compressão, backend, telemetria ou CDN em runtime.
+Não simule economia, codecs, comparação, downloads ou testes.
+
+Mantenha originais, trate alpha e rejeite animações no MVP.
+PNG sem perdas não equivale a quantização de paleta.
+Nunca chame Canvas de MozJPEG, libwebp ou OxiPNG.
+Se um codec falhar, explique e mantenha a operação como falha.
+
+Motor em módulos independentes de React; processamento em worker.
+Use TypeScript strict, lockfile e versões compatíveis verificadas.
+Valide build de produção, não apenas o servidor de desenvolvimento.
+Atualize andamento, dependências e medições sem inventar resultados.
+O repositório público inicial foi autorizado. Pushes e publicações
+posteriores exigem solicitação explícita.
