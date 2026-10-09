@@ -24,6 +24,8 @@ Adicionar manifest, ícones, service worker, cache e atualização sem perder lo
 
 Concluir quando um build servido em contexto apropriado instalar em Chrome/Edge, abrir novamente offline e processar formatos suportados sem rede. Testar codec ainda não usado antes de desligar a rede. Atualização não pode interromper sessão ativa nem deixar mistura de assets.
 
+Em 9 de outubro de 2026 o manifesto, os ícones locais e o service worker passaram a sair do build de produção. O Chrome automatizado recarregou o preview sem rede e processou JPEG, WebP, PNG redimensionado e ZIP. A etapa segue aberta: o diálogo de instalação não apareceu nesse Chrome, a janela instalada não foi fechada e reaberta, e o clique em “Atualizar agora” não foi executado.
+
 A partir daqui já existe uma primeira versão usável no navegador e instalada como PWA.
 
 ## Etapa 3 AVIF e otimizar para web

@@ -2,7 +2,7 @@
 
 Aplicação planejada para comprimir, converter e redimensionar imagens para sites. Interface em português, processamento local, lotes e comparação entre original e resultado.
 
-**Estado atual: lote no navegador, ainda sem redimensionar, slider, PWA ou desktop.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo e baixar o resultado ou um ZIP. A comparação abre sob demanda. Ainda não é o aplicativo completo, não foi verificado offline e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
+**Estado atual: lote no navegador, com redimensionamento, comparação e PWA no build de produção.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo, redimensionar e baixar o resultado ou um ZIP. A comparação abre sob demanda. O serviço de desenvolvimento não prova o modo offline. A instalação pelo diálogo do Chrome e o clique em “Atualizar agora” ainda não foram executados nesta máquina. Ainda não é o aplicativo completo e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
 
 ## Decisões iniciais
 
@@ -61,7 +61,9 @@ npm run preview
 | `npm test` | Vitest, sem navegador |
 | `npm run test:motor` | Build e testes do motor no Google Chrome instalado |
 
-`npm run test:motor` depende do Google Chrome instalado. O fluxo de ponta a ponta da interface, o ZIP e o teste sem rede ficam para as próximas etapas.
+`npm run test:motor` depende do Google Chrome instalado. Ele gera o build e abre o preview em `http://127.0.0.1:4173`. Esse endereço, ou outro HTTPS, é o que vale para a PWA. `npm run dev` não registra o service worker.
+
+Para instalar no Windows, sirva o build e abra no Chrome ou no Edge. Se o botão “Instalar aplicativo” aparecer, use-o. Se não aparecer, abra o menu do navegador e escolha Instalar PixelLeve. Espere “Pronto para usar offline” antes de desligar a rede. Feche o aplicativo, desconecte a rede e abra de novo. Uma atualização só deve ser aplicada com a fila parada: o botão “Atualizar agora” recarrega a página e descarta as imagens da sessão.
 
 ## Publicação e contribuição
 

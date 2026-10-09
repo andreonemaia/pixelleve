@@ -21,14 +21,16 @@ TypeScript 7.0.2 é a versão `latest` no npm, mas `typescript-eslint` 8.71.1 de
 | Vite | Build e worker | 8.3.4 | MIT | Build de produção gerou os WASM |
 | @vitejs/plugin-react | JSX | 6.1.2 | MIT | Em uso |
 | TypeScript | Contratos strict | 6.0.3 | Apache-2.0 | Em uso |
-| Vitest | Testes de funções | 5.0.3 | MIT | 34 testes passaram em 9 de outubro de 2026 |
+| Vitest | Testes de funções | 5.0.3 | MIT | 39 testes passaram em 9 de outubro de 2026 |
 | ESLint / @eslint/js | Lint | 10.12.0 / 10.0.1 | MIT | Passou |
 | typescript-eslint | Lint TypeScript | 8.71.1 | MIT | Passou |
 | eslint-plugin-react-hooks | Hooks | 7.1.1 | MIT | Passou |
 | globals | Ambiente do lint | 17.13.0 | MIT | Em uso |
 | @types/react, @types/react-dom | Tipos | 19.3.0 | MIT | Em uso |
 | @types/node | Tipos Node | 24.19.1 | MIT | Em uso |
-| Playwright | Teste no Chrome | 1.64.0 | Apache-2.0 | 21 testes passaram no preview em 9 de outubro de 2026 |
+| Playwright | Teste no Chrome | 1.64.0 | Apache-2.0 | 24 testes passaram no preview em 9 de outubro de 2026 |
+| vite-plugin-pwa | Manifesto e service worker | 2.0.0 | MIT | Dev. Gera o precache no build; o servidor de desenvolvimento não registra o worker |
+| workbox-build / workbox-window | Precache e registro | 7.4.1 | MIT | Dependências do plugin. `offlineGoogleAnalytics` fica desligado |
 | @jsquash/jpeg | MozJPEG | 1.6.0 | Apache-2.0 no pacote | Encoder/decoder no worker |
 | @jsquash/webp | libwebp | 1.5.0 | Apache-2.0 no pacote | Encoder/decoder no worker |
 | @jsquash/png | PNG decode/encode | 3.1.1 | Apache-2.0 no pacote | Usado para decodificar e para PNG vindo de outro formato |
@@ -54,13 +56,14 @@ JPEG e WebP com perdas usam qualidades 85, 75 e 60. WebP sai com perdas e `alpha
 
 O build de produção emite os WASM em `dist/assets` e o worker em um chunk local. Não há CDN em runtime no bundle verificado.
 
+O precache aceita no máximo 4 MiB por arquivo (`maximumFileSizeToCacheInBytes`). Em 9 de outubro de 2026 o build listou 20 entradas e 1886,11 KiB. O maior WASM, `webp_enc_simd`, ficou em 345,58 KiB. Entram a interface, o CSS, o worker de processamento e os sete WASM dos codecs. `sw.js` e o runtime `workbox-*.js` são instalados com o registro do service worker; não estão na lista de precache. O cache não guarda imagens do usuário. `devOptions.enabled` permanece desligado.
+
 ## Ainda não instaladas
 
 | Item | Estado |
 | --- | --- |
 | Tailwind CSS | Não instalado; a tela usa CSS próprio |
-| @jsquash/resize | Não instalado. O redimensionamento usa média por área no worker, com alpha reto, para ficar determinístico e sem dependência nova |
-| vite-plugin-pwa | Etapa 2 |
+| @jsquash/resize | Não instalado. O redimensionamento usa média por área no worker. A filtragem pondera RGB pelo alpha e devolve alpha reto |
 | @jsquash/avif | Etapa 3 |
 | Tauri 2 | Etapa 4 |
 

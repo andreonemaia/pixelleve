@@ -7,6 +7,7 @@ import { formatarPercentual } from '../core/metricas'
 import { formatarTamanho, resumirLote, textoResumo } from '../core/tamanhos'
 import { navegadorAceitaArrasteDePasta, navegadorAceitaPasta } from '../importacao/lerSoltura'
 import { LIMITE_ZIP_BYTES, montarZip, selecionarParaZip } from '../zip/montarZip'
+import { BarraAplicativo } from './BarraAplicativo'
 import { ListaArquivos } from './ListaArquivos'
 import { useFila, type ItemFila } from './usarFila'
 
@@ -19,6 +20,7 @@ export function TelaLote() {
   const [aceitaPasta, setAceitaPasta] = useState(true)
   const [aceitaArraste, setAceitaArraste] = useState(true)
   const [avisoZip, setAvisoZip] = useState('')
+  const [exportando, definirExportando] = useState(false)
 
   useEffect(() => {
     const pasta = pastaRef.current
@@ -67,6 +69,15 @@ export function TelaLote() {
   }
 
   function baixarLote(origem: ItemFila[]) {
+    definirExportando(true)
+    try {
+      montarDownload(origem)
+    } finally {
+      definirExportando(false)
+    }
+  }
+
+  function montarDownload(origem: ItemFila[]) {
     const selecao = selecionarParaZip(origem)
     const zip = montarZip(selecao.incluidos)
     if (!zip.ok) {
@@ -104,6 +115,7 @@ export function TelaLote() {
         </div>
         <p className="local">Processamento no seu dispositivo</p>
       </header>
+      <BarraAplicativo processando={fila.processando} exportando={exportando} />
 
       <section
         className={arrastando ? 'entrada arrastando' : 'entrada'}
