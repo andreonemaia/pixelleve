@@ -40,7 +40,7 @@ Concluir quando seleção de candidatos for reproduzível, limites forem respeit
 
 Adicionar Tauri ao mesmo projeto, adapter nativo, pasta de saída, nomes sem colisão e instalador. Verificar protocolo de assets, WASM, worker e WebView2.
 
-Em 9 de outubro de 2026 o projeto passou a ter `src-tauri`, comandos `desktop:dev` e `desktop:build`, e um instalador NSIS sem assinatura. A instalação por usuário concluiu e a janela abriu com o Vite parado, usando o WebView2 já presente. O build desktop não registra service worker. A etapa segue aberta: os formatos, a transparência, o redimensionamento, a pasta, os salvamentos, o diálogo cancelado, a pasta sem permissão, a abertura sem rede e a desinstalação não foram exercitados no aplicativo instalado. Um teste no Chrome e um build concluído não fecham esses itens.
+Em 9 de outubro de 2026 o projeto passou a ter `src-tauri`, comandos `desktop:dev` e `desktop:build`, e um instalador NSIS sem assinatura. No mesmo dia, o aplicativo instalado processou PNG, JPEG e WebP no WebView2, inclusive transparência, redimensionamento, pasta, colisão de nome, cancelamento, salvamentos e pasta sem permissão. A desinstalação e a reinstalação preservaram os arquivos de teste. A etapa segue aberta porque o processamento com a rede desligada não foi executado. Um teste no Chrome não substitui o WebView2.
 
 Concluir quando compilação no Windows, instalação, abrir offline, processar, salvar e desinstalar forem testados. Verificar diálogos cancelados, pasta sem permissão e conflitos de nomes. Documentar requisitos e estado de assinatura do instalador. Se o ambiente não permitir build Windows, registrar pendente; um build web não comprova desktop.
 

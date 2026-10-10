@@ -2,7 +2,7 @@
 
 Aplicação planejada para comprimir, converter e redimensionar imagens para sites. Interface em português, processamento local, lotes e comparação entre original e resultado.
 
-**Estado atual: lote no navegador, PWA no build web e instalador Windows sem assinatura.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo, redimensionar e baixar o resultado ou um ZIP. No desktop, os mesmos passos usam diálogos nativos e uma pasta de saída. A comparação abre sob demanda. O preview sem rede e o aviso de atualização da PWA foram exercitados no Chrome automatizado. A instalação pelo diálogo nativo da PWA e a janela instalada da PWA ainda não foram executadas. O instalador Windows abre, mas o processamento dentro do WebView2 ainda não foi testado. Ainda não é o aplicativo completo e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
+**Estado atual: lote no navegador, PWA no build web e aplicativo Windows exercitado no WebView2.** Dá para escolher várias imagens ou uma pasta, comprimir no dispositivo, redimensionar e baixar o resultado ou um ZIP. No desktop instalado, os mesmos passos usam diálogos nativos e uma pasta de saída; PNG, JPEG, WebP, transparência, redimensionamento, pasta, colisão, cancelamento e salvamentos foram conferidos no WebView2. A comparação abre sob demanda. O preview sem rede e o aviso de atualização da PWA foram exercitados no Chrome automatizado. A instalação pelo diálogo nativo da PWA, a janela instalada da PWA e o processamento do aplicativo Windows com a rede desligada ainda não foram executados. O instalador não está assinado. Ainda não é o aplicativo completo e não se compara aqui ao TinyPNG. O andamento está em [STATUS](docs/STATUS.md).
 
 ## Decisões iniciais
 
@@ -74,7 +74,9 @@ npm run desktop:dev
 npm run desktop:build
 ```
 
-O instalador sai em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.0_x64-setup.exe`. Ele não está assinado e instala só para o usuário atual. Feche o Vite, instale, desconecte a rede e abra o PixelLeve instalado. Escolha imagens e uma pasta, salve um arquivo, o ZIP e uma pasta de saída, cancele um diálogo e tente uma pasta sem permissão. Esse roteiro ainda não foi executado por completo nesta máquina: a janela instalada abriu com o Vite parado, e o processamento no WebView2 continua pendente. Se o WebView2 não estiver instalado, o instalador tenta baixar o bootstrapper e precisa de rede nessa etapa.
+O instalador sai em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.0_x64-setup.exe`. Ele não está assinado e instala só para o usuário atual. A cópia gerada em 9 de outubro de 2026 foi instalada, exercitada no WebView2 e reinstalada depois de uma desinstalação silenciosa. Se o WebView2 não estiver instalado, o instalador tenta baixar o bootstrapper e precisa de rede nessa etapa.
+
+Para repetir a prova que ainda falta, encerre o Vite, desconecte a rede e abra o PixelLeve instalado. Escolha um PNG local, comprima e confira o resultado. Não foi possível isolar a rede desta máquina sem desligar o adaptador ou bloquear o WebView2 compartilhado com outros programas, então esse passo continua manual.
 
 ## Publicação e contribuição
 
