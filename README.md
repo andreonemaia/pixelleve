@@ -74,9 +74,11 @@ npm run desktop:dev
 npm run desktop:build
 ```
 
-O instalador sai em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.0_x64-setup.exe`. Ele não está assinado e instala só para o usuário atual. A cópia gerada em 9 de outubro de 2026 foi instalada, exercitada no WebView2 e reinstalada depois de uma desinstalação silenciosa. Se o WebView2 não estiver instalado, o instalador tenta baixar o bootstrapper e precisa de rede nessa etapa.
+O instalador atual é `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.1_x64-setup.exe`, gerado em 10 de outubro de 2026 às 01:04. Tem 2.617.614 bytes, SHA-256 `91961E3CEDBB4C7687583D2B3F1FB0145D86A03F12AF1A6E54D9F7480AEA073A` e `Get-AuthenticodeSignature` `NotSigned`. Instala só para o usuário atual. A versão 0.1.0, de 9 de outubro às 17:51, permanece no mesmo diretório e não recebe os testes desta tela.
 
-Para repetir a prova que ainda falta, encerre o Vite, desconecte a rede e abra o PixelLeve instalado. Escolha um PNG local, comprima e confira o resultado. Não foi possível isolar a rede desta máquina sem desligar o adaptador ou bloquear o WebView2 compartilhado com outros programas, então esse passo continua manual.
+Nesta máquina a 0.1.1 foi instalada com o Vite parado e aberta pelo atalho do Menu Iniciar. O WebView2 era 154.0.4258.62. A janela usou a fonte do sistema, o resumo de economia e os botões de salvar nativos, sem a barra da PWA. Um PNG com transparência passou de 32×32 para 16×16 em JPEG, 123→395 bytes, com o aviso de fundo. A nova tentativa em WebP ficou 123→120 bytes. JPEG, WebP e PNG entraram pelos diálogos. Uma pasta de teste com duas subpastas trouxe só as imagens; o ZIP de 528 bytes e a pasta de saída repetiram `dois/foto.png` (107 bytes) e `um/foto.png` (199 bytes). Os originais mantiveram o SHA-256. O lote da pasta mostrou “Economizou 5,3 KB · 94,6%”.
+
+Para a prova que ainda falta, encerre o PixelLeve, o Vite e o preview, desligue a rede e abra o atalho. Escolha um PNG local, comprima, salve o ZIP e confira o arquivo. `Disable-NetAdapter` no adaptador Ethernet desta máquina retornou acesso negado, então o processamento sem rede não foi executado. Se o WebView2 não estiver instalado, o instalador tenta baixar o bootstrapper e precisa de rede nessa etapa.
 
 ## Publicação e contribuição
 

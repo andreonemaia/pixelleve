@@ -92,4 +92,4 @@ O desenvolvimento desktop precisa de Rust com alvo `x86_64-pc-windows-msvc`, das
 
 Nesta máquina o `tauri build` de release concluiu com rustc 1.99.0. Uma releitura com `vswhere -all` não listou um produto do Visual Studio, então a versão das Build Tools não fica registrada aqui. O WebView2 Evergreen 154.0.4258.62 já estava instalado.
 
-O instalador é NSIS, `currentUser`, sem `certificateThumbprint`. `Get-AuthenticodeSignature` retornou `NotSigned`. O `webviewInstallMode` é `downloadBootstrapper`: se o runtime faltar, o instalador tenta baixá-lo. O aplicativo instalado não usa Vite, npm nem um frontend remoto. O arquivo gerado fica em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.0_x64-setup.exe` e não entra no Git.
+O instalador é NSIS, `currentUser`, sem `certificateThumbprint`. `Get-AuthenticodeSignature` retornou `NotSigned`. O `webviewInstallMode` é `downloadBootstrapper`: se o runtime faltar, o instalador tenta baixá-lo. O aplicativo instalado não usa Vite, npm nem um frontend remoto. O arquivo atual é `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.1_x64-setup.exe` e não entra no Git. A cópia 0.1.0 continua nesse diretório como build anterior.
