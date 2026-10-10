@@ -111,7 +111,7 @@ function BarraWeb({ processando, exportando, quantidadeSessao }: BarraAplicativo
       {prontoOffline ? (
         <p data-teste="offline">Pronto para usar offline</p>
       ) : (
-        <p>A disponibilidade offline aparece quando a interface e os codecs estiverem no cache.</p>
+        <p>O uso sem rede aparece aqui quando estiver pronto.</p>
       )}
       {instalado ? null : pedido ? (
         <button type="button" data-teste="instalar" onClick={() => void aoInstalar()}>

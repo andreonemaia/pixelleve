@@ -1,6 +1,6 @@
 # Estado do projeto
 
-Atualizado em 9 de outubro de 2026.
+Atualizado em 10 de outubro de 2026.
 
 ## Concluído
 
@@ -14,6 +14,7 @@ Atualizado em 9 de outubro de 2026.
 - Redimensionamento por média de área pondera RGB pela transparência e devolve alpha reto. Pixels totalmente transparentes não entram na cor visível.
 - PWA no build de produção: manifesto `standalone`, ícones locais, service worker com registro `prompt` e precache da interface, do worker e dos sete WASM. O aviso “Pronto para usar offline” só aparece depois que esses codecs estão no cache.
 - Aviso de atualização da PWA: “Atualizar agora” fica desativado durante processamento e exportação. Se a sessão tem imagens ou resultados, a tela avisa que a recarga apaga o que não foi salvo fora do aplicativo e oferece “Continuar nesta versão”. A fila ociosa com itens continua sendo sessão com conteúdo. As imagens não são gravadas para contornar a recarga.
+- Tela compacta no mesmo CSS da web e do desktop: fonte do sistema, painel de configuração ao lado a partir de 1024 px e economia calculada dos bytes como resultado principal. Aumento e economia zero não usam a cor de sucesso. O instalador de 9 de outubro de 2026 às 17:51 não contém esta tela.
 
 ## Implementado, com validação incompleta
 
@@ -23,7 +24,7 @@ Atualizado em 9 de outubro de 2026.
 
 ## Validado no aplicativo instalado
 
-No WebView2 154.0.4258.62, com o Vite parado, sobre o instalador de 9 de outubro de 2026 às 17:51 (2.617.052 bytes, `NotSigned`). A interface foi conduzida pela porta de depuração do WebView2; essa porta não faz parte do uso normal.
+No WebView2 154.0.4258.62, com o Vite parado, sobre o instalador de 9 de outubro de 2026 às 17:51 (2.617.052 bytes, `NotSigned`). Esses resultados são da tela anterior. A tela compacta desta data foi vista no `npm run desktop:dev`, não nesse instalador. A interface foi conduzida pela porta de depuração do WebView2; essa porta não faz parte do uso normal.
 
 - PNG com transparência: 106→105 bytes, 32×32, arquivo salvo com `tRNS`.
 - Redimensionamento: 200×100 passou a 100×50, 566→98 bytes.
@@ -84,6 +85,7 @@ Os itens 4 a 8 foram executados em 9 de outubro de 2026 com a rede disponível. 
 | 2026-10-09 | 2, aceite e cancelamento da atualização | Node 24.18.0, npm 11.16.0. `npx vitest run`, `npx eslint .`, `npm run test:motor` no preview `http://127.0.0.1:4173` | Vitest: 40. Lint sem erros. Vite 8.3.4, precache de 20 entradas e 1891,22 KiB, maior WASM 345,58 KiB. Playwright: 26 testes no Google Chrome instalado. Com resultado concluído, “Continuar nesta versão” manteve a linha e “Atualizar agora” recarregou e esvaziou a sessão. O bloqueio durante o processamento e a recarga offline continuaram passando | O diálogo nativo de instalação da PWA não disparou. Fechar e reabrir a janela instalada da PWA não foi feito. Pendências manuais da etapa 1 permanecem |
 | 2026-10-09 | 4, desktop Windows | rustc 1.99.0, cargo 1.99.0, host `x86_64-pc-windows-msvc`, WebView2 154.0.4258.62. `cargo test` e `npm run desktop:build` | `cargo test`: 4 testes de caminho e código de permissão. O frontend desktop teve 44 módulos, os sete WASM e nenhum service worker. O instalador NSIS não assinado ficou em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.0_x64-setup.exe`, com 2.617.052 bytes. `Get-AuthenticodeSignature` retornou `NotSigned`. A instalação `/S` saiu com código 0 e gravou `%LOCALAPPDATA%\PixelLeve\pixelleve.exe`. A janela “PixelLeve” abriu, respondeu e criou um processo filho `msedgewebview2`, sem iniciar Vite | Nesta linha o processamento no WebView2 ainda não tinha sido feito. A linha seguinte registra essa prova |
 | 2026-10-09 | 4, validação no WebView2 | WebView2 154.0.4258.62. Aplicativo instalado de `PixelLeve_0.1.0_x64-setup.exe`, 2.617.052 bytes, `NotSigned`. Vite parado. A interface foi conduzida pela porta de depuração, só nesta prova | PNG 32×32 com `tRNS`, 106→105. Resize 200×100 para 100×50, 566→98. JPEG 100×50, 478 bytes. WebP 100×50, 138 bytes. Releitura: JPEG 478→477 e WebP 138→134. ZIP de 463 bytes. Pasta com subpastas, colisão `foto (2).png` sem sobrescrever. Cancelamento de 1600×1200 e nova tentativa WebP 852004→19794. Diálogos cancelados. Pasta sem permissão manteve 1 resultado. Originais com o mesmo SHA-256. Desinstalar `/S` código 0 e reinstalar `/S` código 0; a janela reabriu sem Vite | Processar com a rede desligada não foi feito. Na abertura sem porta de depuração, `pixelleve.exe` não teve conexão TCP e `msedgewebview2` tinha duas conexões estabelecidas com 52.97.78.18 na porta 443, antes de escolher imagem. Durante a prova com depuração também apareceram 8.8.4.4:443, 8.8.8.8:443 e 127.0.0.1. Não houve captura do conteúdo, então não dá para afirmar o que esses fluxos carregavam. O bundle desktop não contém URL de envio de imagem; há namespaces do W3C, o prefixo `https://react.dev/errors/` do React e um `https://localhost` usado só quando `import.meta.url` não existe. Pendências manuais da etapa 1 e a instalação nativa da PWA permanecem |
+| 2026-10-10 | Tela compacta | Node 24.18.0, npm 11.16.0. `npx vitest run`, `npx eslint .`, `npm run build`, `npx playwright test` no preview `http://127.0.0.1:4173`. `npm run desktop:dev` no WebView2, sem gerar instalador | Vitest: 40. Lint sem erros. Build web Vite 8.3.4, CSS `index-CGZc8qMN.css` com Segoe UI, precache de 20 entradas e 1897,15 KiB. Playwright: 26 testes. O mesmo CSS entrou em `dist-desktop`. Preview: vazio, fila, “Economizou 1,7 KB · 88%” (1,9 KB → 231 B), JPEG “Aumentou 251 B · 306,1%” (82 B → 333 B), “Economia zero” em 152 B → 152 B, falha de PNG truncado, cancelamento e comparação. Sem rolagem horizontal em 1440, 1024 e 390 px, nem na emulação de zoom 200% (viewport CSS de 720 px). Tab alcançou as ações com contorno de 3 px. No `desktop:dev`, a barra de instalação não apareceu; `texto.png` ficou 151 B → 107 B, “Economizou 44 B · 29,1%”, com “Salvar lote em ZIP” em destaque | O instalador das 17:51 não tem esta tela. Processar o aplicativo instalado sem rede continua pendente. Pendências manuais da etapa 1 e a instalação nativa da PWA permanecem |
 
 O download do Chromium headless do Playwright falhou neste ambiente com `SELF_SIGNED_CERT_IN_CHAIN`. Os testes usaram o Google Chrome instalado (`channel: 'chrome'` no `playwright.config.ts`). O Chrome da máquina também recebeu pedidos do Kaspersky para scripts locais; o teste ignora esse host. O bundle da aplicação não referencia Kaspersky, analytics ou CDN. Não foi medido se o antivírus inspeciona o conteúdo dos arquivos fora do navegador.
 

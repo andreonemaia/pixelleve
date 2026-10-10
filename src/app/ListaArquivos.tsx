@@ -28,11 +28,11 @@ export function ListaArquivos({
   aoSalvar,
 }: ListaArquivosProps) {
   const comparando = itens.find((item) => item.id === comparandoId) ?? null
+  if (itens.length === 0) return null
 
   return (
     <section className="lista">
       <h2>Arquivos</h2>
-      {itens.length === 0 ? <p className="vazio-lista">Nenhuma imagem na fila.</p> : null}
       {itens.map((item) => {
         const partes = partirCaminho(item.caminhoRelativo)
         const nomeBaixar = item.resultado
@@ -76,7 +76,7 @@ export function ListaArquivos({
             </button>
             <div>
               {item.resultado ? (
-                <span className="economia-item">
+                <span className={classePar(item.resultado.bytesEntrada, item.resultado.bytesSaida, item.resultado.usouOriginal)}>
                   {descreverPar(item.resultado.bytesEntrada, item.resultado.bytesSaida, item.resultado.usouOriginal)}
                 </span>
               ) : (
@@ -158,8 +158,16 @@ function rotuloEstado(estado: EstadoItem): string {
 }
 
 function classeEstado(estado: EstadoItem): string {
-  if (estado === 'falha' || estado === 'maior') return 'estado estado-falha'
+  if (estado === 'falha') return 'estado estado-falha'
+  if (estado === 'maior') return 'estado estado-maior'
   if (estado === 'cancelado') return 'estado estado-cancelado'
   if (estado === 'concluido' || estado === 'sem-reducao') return 'estado estado-ok'
+  if (estado === 'processando') return 'estado estado-processando'
   return 'estado'
+}
+
+function classePar(entrada: number, saida: number, usouOriginal: boolean): string {
+  if (usouOriginal || saida === entrada) return 'economia-item economia-neutra'
+  if (saida > entrada) return 'economia-item economia-aumento'
+  return 'economia-item economia-ok'
 }
