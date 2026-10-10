@@ -24,9 +24,9 @@ Adicionar manifest, ícones, service worker, cache e atualização sem perder lo
 
 Concluir quando um build servido em contexto apropriado instalar em Chrome/Edge, abrir novamente offline e processar formatos suportados sem rede. Testar codec ainda não usado antes de desligar a rede. Atualização não pode interromper sessão ativa nem deixar mistura de assets.
 
-Em 9 de outubro de 2026 o manifesto, os ícones locais e o service worker passaram a sair do build de produção. O Chrome automatizado recarregou o preview sem rede e processou JPEG, WebP, PNG redimensionado e ZIP. A etapa segue aberta: o diálogo de instalação não apareceu nesse Chrome, a janela instalada não foi fechada e reaberta, e o clique em “Atualizar agora” não foi executado.
+Em 9 de outubro de 2026 o manifesto, os ícones locais e o service worker passaram a sair do build de produção. O Chrome automatizado recarregou o preview sem rede e processou JPEG, WebP, PNG redimensionado e ZIP. No mesmo dia, o preview também exercitou “Continuar nesta versão” com um resultado concluído e “Atualizar agora”, que recarregou e descartou a sessão. A etapa segue aberta: o diálogo de instalação não apareceu nesse Chrome e a janela instalada da PWA não foi fechada e reaberta.
 
-A partir daqui já existe uma primeira versão usável no navegador e instalada como PWA.
+A versão web já é usável no navegador. A instalação nativa da PWA continua pendente.
 
 ## Etapa 3 AVIF e otimizar para web
 
@@ -39,6 +39,8 @@ Concluir quando seleção de candidatos for reproduzível, limites forem respeit
 ## Etapa 4 Desktop Windows
 
 Adicionar Tauri ao mesmo projeto, adapter nativo, pasta de saída, nomes sem colisão e instalador. Verificar protocolo de assets, WASM, worker e WebView2.
+
+Em 9 de outubro de 2026 o projeto passou a ter `src-tauri`, comandos `desktop:dev` e `desktop:build`, e um instalador NSIS sem assinatura. No mesmo dia, o aplicativo instalado processou PNG, JPEG e WebP no WebView2, inclusive transparência, redimensionamento, pasta, colisão de nome, cancelamento, salvamentos e pasta sem permissão. A desinstalação e a reinstalação preservaram os arquivos de teste. A etapa segue aberta porque o processamento com a rede desligada não foi executado. Um teste no Chrome não substitui o WebView2.
 
 Concluir quando compilação no Windows, instalação, abrir offline, processar, salvar e desinstalar forem testados. Verificar diálogos cancelados, pasta sem permissão e conflitos de nomes. Documentar requisitos e estado de assinatura do instalador. Se o ambiente não permitir build Windows, registrar pendente; um build web não comprova desktop.
 

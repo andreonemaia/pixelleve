@@ -2,27 +2,31 @@
 
 ## Direção visual
 
-Aplicativo utilitário com aparência de produto pronto para uso diário. Tema claro, fundo neutro quente, superfície branca e cor verde petróleo. Português brasileiro, textos diretos e números fáceis de comparar. Evitar visual de painel administrativo cheio de métricas.
+Aplicativo utilitário, compacto, com tema claro. Fundo #F6F7F4, superfície #FFFFFF, texto #172A28, texto secundário #34514C, destaque #147D64, borda #DDE5DF, falha e aumento #8A3D32. Raios de 12 px nos cartões e 10 px nos controles. A fonte é a pilha local Segoe UI, system-ui, Helvetica Neue e sans-serif, sem download. Tamanhos e percentuais usam números tabulares. O mesmo CSS entra no build web (`dist`) e no bundle desktop (`dist-desktop`).
 
-Nome provisório PixelLeve; frase curta: “Imagens prontas para a web”.
+Nome PixelLeve; frase curta: “Imagens prontas para a web”.
 
-Tokens sugeridos: fundo #F6F7F4, superfície #FFFFFF, texto #172A28, destaque #147D64 e borda #DDE5DF. São propostas; medir contraste antes de adotar. Fonte do sistema, sem download externo. Ícones consistentes e acompanhados de rótulos nas ações principais.
+O botão principal é preenchido. As outras ações ficam com borda neutra e continuam visíveis sem hover. Desabilitado usa fundo cinza e cursor de espera. Foco por teclado tem contorno de 3 px na cor de destaque.
 
 ## Tela inicial
 
-Cabeçalho compacto com o nome e “Processamento no seu dispositivo”. A área de entrada tem “Escolher imagens”, “Escolher pasta” e arrastar imagens ou pastas quando o navegador permitir. Abaixo, formatos aceitos e limites reais. Selecionar uma pasta não altera os originais. Se a seleção de pasta ou o arraste de diretório não existir, a tela explica e oferece a seleção múltipla.
+Cabeçalho compacto com PixelLeve, a frase curta e a indicação “Processamento no seu dispositivo”. A área de entrada tem “Escolher imagens”, “Escolher pasta” e uma frase sobre arrastar. Formatos e limites ficam em nota secundária. Com a fila vazia, “Escolher imagens” é a ação principal. Depois de importar, a área de entrada encolhe. Se a seleção de pasta ou o arraste de diretório não existir, a tela explica e oferece a seleção múltipla.
+
+A partir de 1024 px, a lista e o resumo ficam na coluna principal e a configuração num painel lateral de 280 px. Abaixo disso os blocos empilham: entrada, configuração, resumo e lista, sem rolagem horizontal.
 
 A comparação não ocupa a tela vazia. Ela abre ao selecionar uma imagem ou em “Comparar”.
 
-Configuração inicial: manter formato e preset Equilibrado. “Comprimir lote” fica ativo quando houver itens aguardando. Não iniciar conversão irreversível enquanto a pessoa ainda escolhe opções.
+Configuração inicial: manter formato e preset Equilibrado. Formato e preset ficam juntos. Redimensionar é uma seção própria. “Comprimir lote” fica ativo quando houver itens aguardando. Não iniciar conversão irreversível enquanto a pessoa ainda escolhe opções.
 
 ## Sessão com imagens
 
-O resumo de economia fica em destaque: quantidade, tamanho original, tamanho final, economia absoluta e percentual do lote. Durante o processamento o rótulo é “Economia até agora” e só considera pares concluídos. Aguardando, falha, ignorados e cancelados aparecem em contagem separada.
+O resumo mostra original, final, quantidade e o andamento. A economia é a frase principal, no formato “Economizou 1,7 KB · 88%”, calculada só dos bytes concluídos. Sem resultados, os tamanhos ficam em travessão e o texto explica que a economia ainda não existe; nenhum número é inventado. Durante o processamento o rótulo é “Economia até agora”. Aumento de tamanho usa a cor de falha, não o verde. Economia zero fica neutra. Aguardando, falha, ignorados e cancelados continuam na contagem separada.
 
-A lista mostra miniatura sob demanda, nome, caminho relativo, tamanhos, economia, estado e ações. “Comparar” abre diálogo acessível. Não ocultar o nome inteiro sem alternativa acessível.
+A lista mostra miniatura, nome, caminho relativo, dimensões, original e resultado, economia absoluta e percentual, estado e as ações Comparar, Baixar ou Salvar, Tentar novamente e Remover. “Comprimir lote” é o botão principal antes de haver resultado. “Baixar lote em ZIP” na web, ou “Salvar lote em ZIP” no desktop, passa a ser o principal quando existe arquivo pronto. “Comparar” abre diálogo acessível. Não ocultar o nome inteiro sem alternativa acessível.
 
-Painel: formato de saída, preset e dimensões. “Manter dimensões originais” começa marcado. Largura máxima e altura máxima são opcionais, em pixels, e só entram no processamento quando essa opção está desmarcada. Para PNG sem perdas, explicar que a qualidade visual é preservada. Para JPEG e WebP, avisar que há perdas. Para JPEG com transparência, pedir fundo. A linha mostra as dimensões originais e as finais. Configurações aplicam-se aos próximos jobs; “Tentar novamente” reprocessa o original.
+Painel: formato de saída e preset, com um microtexto sobre perda. “Manter dimensões originais” começa marcado. Enquanto marcado, largura e altura ficam esmaecidas, continuam editáveis e não entram no processamento. O texto ao lado informa os limites guardados. Desmarcar devolve o destaque dos campos. Para PNG sem perdas, o microtexto diz que os pixels são preservados. Para JPEG e WebP, avisa que há perdas. Para JPEG com transparência, o seletor de fundo e o aviso ficam visíveis, fora de tooltip. O detalhe de proporção, de não ampliar e de a pasta não alterar originais fica em “Como funciona”. A linha mostra as dimensões originais e as finais. Configurações aplicam-se aos próximos jobs; “Tentar novamente” reprocessa o original.
+
+Na web, a barra mostra instalação e atualização da PWA. No desktop essa barra não aparece; salvar usa diálogo nativo e pasta de saída. O fluxo principal não explica WASM, cache nem arquitetura.
 
 ## Comparação
 
@@ -36,7 +40,7 @@ Abrir por botão, fechar com Escape, manter foco no diálogo e devolver foco ao 
 | --- | --- | --- |
 | Vazio | Arraste imagens ou escolha arquivos | Escolher imagens |
 | Na fila | Aguardando | Remover |
-| Processando | Otimizando imagem | Cancelar |
+| Processando | Comprimindo | Cancelar |
 | Pronto | 64% menor | Comparar e baixar |
 | Sem redução | Já estava otimizada | Baixar original |
 | Maior após conversão | 12% maior no formato escolhido | Comparar e baixar |

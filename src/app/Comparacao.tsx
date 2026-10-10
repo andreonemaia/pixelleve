@@ -10,6 +10,7 @@ import type { ItemFila } from './usarFila'
 interface ComparacaoProps {
   item: ItemFila
   aoFechar: () => void
+  aoSalvar?: () => void
 }
 
 interface Deslocamento {
@@ -17,7 +18,7 @@ interface Deslocamento {
   y: number
 }
 
-export function Comparacao({ item, aoFechar }: ComparacaoProps) {
+export function Comparacao({ item, aoFechar, aoSalvar }: ComparacaoProps) {
   const fecharRef = useRef<HTMLButtonElement>(null)
   const vistaRef = useRef<HTMLDivElement>(null)
   const deslocamentoRef = useRef<Deslocamento>({ x: 0, y: 0 })
@@ -217,9 +218,15 @@ export function Comparacao({ item, aoFechar }: ComparacaoProps) {
           <p key={aviso}>{aviso}</p>
         ))}
         {item.resultado ? (
-          <a className="acao" href={item.resultado.url} download={nomeBaixar}>
-            Baixar esta imagem
-          </a>
+          aoSalvar ? (
+            <button type="button" onClick={aoSalvar}>
+              Salvar esta imagem
+            </button>
+          ) : (
+            <a className="acao" href={item.resultado.url} download={nomeBaixar}>
+              Baixar esta imagem
+            </a>
+          )
         ) : null}
       </section>
     </div>

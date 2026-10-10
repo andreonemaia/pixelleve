@@ -1,0 +1,11 @@
+[[permission]]
+identifier = "comandos-arquivos"
+description = "Leitura e gravacao apenas depois de um dialogo nativo"
+commands.allow = [
+  "escolher_imagens",
+  "escolher_pasta",
+  "ler_arquivo",
+  "escolher_pasta_saida",
+  "gravar_resultado",
+  "salvar_arquivo",
+]

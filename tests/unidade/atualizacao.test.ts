@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { podeAtualizarAgora } from '../../src/core/atualizacao'
+import { podeAtualizarAgora, sessaoTemImagens } from '../../src/core/atualizacao'
 import { cacheCobreCodecs } from '../../src/pwa/cache'
 
 describe('atualização e cache', () => {
@@ -7,6 +7,12 @@ describe('atualização e cache', () => {
     expect(podeAtualizarAgora(false, false)).toBe(true)
     expect(podeAtualizarAgora(true, false)).toBe(false)
     expect(podeAtualizarAgora(false, true)).toBe(false)
+  })
+
+  test('fila ociosa com imagens não é sessão vazia', () => {
+    expect(podeAtualizarAgora(false, false)).toBe(true)
+    expect(sessaoTemImagens(0)).toBe(false)
+    expect(sessaoTemImagens(2)).toBe(true)
   })
 
   test('o cache offline exige os wasm dos codecs', () => {

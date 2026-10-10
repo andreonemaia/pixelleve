@@ -1,6 +1,7 @@
 # Dependências e saída de build
 node_modules/
 dist/
+dist-desktop/
 dist-ssr/
 dev-dist/
 *.local

@@ -9,6 +9,7 @@ export interface EntradaSistema {
 export interface EntradaImportada {
   arquivo: File
   caminhoRelativo: string
+  tamanho?: number
 }
 
 export async function percorrerEntrada(
