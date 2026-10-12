@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
+import {
+  CircleStop,
+  Eraser,
+  FileArchive,
+  FolderOpen,
+  FolderOutput,
+  ImagePlus,
+  Link2,
+  Scaling,
+  Shrink,
+  SlidersHorizontal,
+  Upload,
+} from 'lucide-react'
 import { lerLimiteOpcional, LIMITE_LADO, montarLimites } from '../core/dimensoes'
 import type { FormatoSaida, Preset } from '../core/tipos'
 import { contarFila, textoContagem, textoProgresso } from '../core/fila'
@@ -8,6 +21,7 @@ import { formatarTamanho, resumirLote, textoResumo, type ResumoLote } from '../c
 import { navegadorAceitaArrasteDePasta, navegadorAceitaPasta } from '../importacao/lerSoltura'
 import { LIMITE_ZIP_BYTES, montarZip, selecionarParaZip } from '../zip/montarZip'
 import { BarraAplicativo } from './BarraAplicativo'
+import { Icone } from './Icone'
 import { ListaArquivos } from './ListaArquivos'
 import { useFila, type ItemFila } from './usarFila'
 import { caminhoDeSaida } from '../core/caminhos'
@@ -60,9 +74,15 @@ export function TelaLote() {
   const somaProntos = prontos.reduce((total, item) => total + (item.resultado?.bytesSaida ?? 0), 0)
   const limites = montarLimites({
     manterDimensoes: fila.manterDimensoes,
+    manterProporcao: fila.manterProporcao,
+    referencia: fila.referencia,
     textoLargura: fila.textoLargura,
     textoAltura: fila.textoAltura,
   })
+  const esperando = contagem.aguardando > 0 && !fila.processando
+  const classeComprimir = esperando ? 'principal' : 'suave'
+  const classeCancelar = fila.processando ? 'principal' : 'suave'
+  const classeZip = !fila.processando && prontos.length > 0 && !esperando ? 'principal' : undefined
 
   const definirComparandoId = fila.definirComparandoId
   const fecharComparacao = useCallback(() => {
@@ -203,7 +223,6 @@ export function TelaLote() {
     setAvisoZip(partes.join(' '))
   }
 
-  const loteComResultado = prontos.length > 0
   const classeEntrada = arrastando ? 'entrada arrastando' : comFila ? 'entrada compacta' : 'entrada'
   const textoLimites = textoDosLimites(fila.textoLargura, fila.textoAltura)
 
@@ -233,14 +252,21 @@ export function TelaLote() {
         onDragLeave={() => setArrastando(false)}
         onDrop={aoSoltar}
       >
+        {comFila ? null : (
+          <div className="entrada-marca">
+            <Icone icone={Upload} tamanho={22} />
+          </div>
+        )}
         <h2>{comFila ? 'Adicionar mais' : 'Adicionar imagens'}</h2>
         <p>{comFila ? 'Arraste mais arquivos ou escolha outra pasta.' : 'Arraste imagens ou uma pasta.'}</p>
         <div className="acoes-entrada">
           <button type="button" className={comFila ? undefined : 'principal'} onClick={() => void aoEscolherImagens()}>
+            <Icone icone={ImagePlus} />
             Escolher imagens
           </button>
           {aceitaPasta ? (
-            <button type="button" onClick={() => void aoEscolherPasta()}>
+            <button type="button" className={comFila ? undefined : 'apoio'} onClick={() => void aoEscolherPasta()}>
+              <Icone icone={FolderOpen} />
               Escolher pasta
             </button>
           ) : null}
@@ -325,36 +351,43 @@ export function TelaLote() {
         <div className="acoes-lote">
           <button
             type="button"
-            className={loteComResultado ? undefined : 'principal'}
+            className={classeComprimir}
             onClick={() => void fila.comprimirLote()}
             disabled={contagem.aguardando === 0 || fila.processando || !limites.ok}
           >
+            <Icone icone={Shrink} />
             Comprimir lote
           </button>
-          <button type="button" onClick={fila.cancelar} disabled={!fila.processando}>
+          <button type="button" className={classeCancelar} onClick={fila.cancelar} disabled={!fila.processando}>
+            <Icone icone={CircleStop} />
             Cancelar
           </button>
           <button
             type="button"
-            className={loteComResultado ? 'principal' : undefined}
+            className={classeZip}
             onClick={() => baixarLote(fila.itens)}
             disabled={prontos.length === 0 || somaProntos > LIMITE_ZIP_BYTES}
           >
+            <Icone icone={FileArchive} />
             {desktop ? 'Salvar lote em ZIP' : 'Baixar lote em ZIP'}
           </button>
           <button
             type="button"
+            className="suave"
             onClick={() => baixarLote(fila.itens.filter((item) => item.selecionado))}
             disabled={selecionados.length === 0}
           >
+            <Icone icone={FileArchive} />
             {desktop ? 'Salvar seleção' : 'Baixar seleção'}
           </button>
           {desktop ? (
-            <button type="button" onClick={() => void aoSalvarPasta(prontos)} disabled={prontos.length === 0}>
+            <button type="button" className="suave" onClick={() => void aoSalvarPasta(prontos)} disabled={prontos.length === 0}>
+              <Icone icone={FolderOutput} />
               Salvar em pasta
             </button>
           ) : null}
-          <button type="button" onClick={fila.limpar} disabled={fila.itens.length === 0 || fila.processando}>
+          <button type="button" className="suave" onClick={fila.limpar} disabled={fila.itens.length === 0 || fila.processando}>
+            <Icone icone={Eraser} />
             Limpar
           </button>
         </div>
@@ -383,7 +416,10 @@ export function TelaLote() {
         </div>
         <aside className="lateral">
           <section className="painel" aria-label="Configuração">
-            <h2>Configuração</h2>
+            <h2>
+              <Icone icone={SlidersHorizontal} />
+              Configuração
+            </h2>
             <div className="grupo-config">
               <label className="campo">
                 Formato de saída
@@ -409,7 +445,10 @@ export function TelaLote() {
             </div>
             <p className="micro">{textoQualidade(fila.formato)}</p>
             <fieldset className="dimensoes">
-              <legend>Redimensionar</legend>
+              <legend>
+                <Icone icone={Scaling} />
+                Redimensionar
+              </legend>
               <label className="campo campo-check">
                 <input
                   id="manter-dimensoes"
@@ -420,30 +459,85 @@ export function TelaLote() {
                 Manter dimensões originais
               </label>
               {fila.manterDimensoes ? <p className="micro">{textoLimites}</p> : null}
-              <div className={fila.manterDimensoes ? 'campos-limite inativos' : 'campos-limite'}>
-                <label className="campo">
-                  Largura máxima
+              <fieldset className="controles-dimensao" disabled={fila.manterDimensoes}>
+                <label className="campo campo-check">
                   <input
-                    id="largura-maxima"
-                    type="text"
-                    inputMode="numeric"
-                    value={fila.textoLargura}
-                    aria-invalid={!fila.manterDimensoes && !lerLimiteOpcional(fila.textoLargura, 'largura').ok}
-                    onChange={(evento) => fila.definirTextoLargura(evento.target.value)}
+                    id="manter-proporcao"
+                    type="checkbox"
+                    checked={fila.manterProporcao}
+                    onChange={(evento) => fila.definirManterProporcao(evento.target.checked)}
                   />
+                  <Icone icone={Link2} />
+                  Manter proporção
                 </label>
-                <label className="campo">
-                  Altura máxima
-                  <input
-                    id="altura-maxima"
-                    type="text"
-                    inputMode="numeric"
-                    value={fila.textoAltura}
-                    aria-invalid={!fila.manterDimensoes && !lerLimiteOpcional(fila.textoAltura, 'altura').ok}
-                    onChange={(evento) => fila.definirTextoAltura(evento.target.value)}
-                  />
-                </label>
-              </div>
+                {fila.manterProporcao ? (
+                  <>
+                    <div className="referencia">
+                      <label className="campo campo-check">
+                        <input
+                          type="radio"
+                          name="referencia"
+                          value="largura"
+                          checked={fila.referencia === 'largura'}
+                          onChange={() => fila.definirReferencia('largura')}
+                        />
+                        Limitar pela largura
+                      </label>
+                      <label className="campo campo-check">
+                        <input
+                          type="radio"
+                          name="referencia"
+                          value="altura"
+                          checked={fila.referencia === 'altura'}
+                          onChange={() => fila.definirReferencia('altura')}
+                        />
+                        Limitar pela altura
+                      </label>
+                    </div>
+                    <p className="micro">A outra dimensão é calculada para cada imagem, sem deformar.</p>
+                    <div className="campos-limite">
+                      <CampoLimite
+                        rotulo="Largura máxima"
+                        id="largura-maxima"
+                        valor={fila.textoLargura}
+                        automatico={fila.referencia !== 'largura'}
+                        invalido={!lerLimiteOpcional(fila.textoLargura, 'largura').ok}
+                        aoMudar={fila.definirTextoLargura}
+                      />
+                      <CampoLimite
+                        rotulo="Altura máxima"
+                        id="altura-maxima"
+                        valor={fila.textoAltura}
+                        automatico={fila.referencia !== 'altura'}
+                        invalido={!lerLimiteOpcional(fila.textoAltura, 'altura').ok}
+                        aoMudar={fila.definirTextoAltura}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="aviso">Dimensões exatas podem deformar a imagem.</p>
+                    <div className="campos-limite">
+                      <CampoLimite
+                        rotulo="Largura final"
+                        id="largura-maxima"
+                        valor={fila.textoLargura}
+                        automatico={false}
+                        invalido={!lerLimiteOpcional(fila.textoLargura, 'largura', true).ok}
+                        aoMudar={fila.definirTextoLargura}
+                      />
+                      <CampoLimite
+                        rotulo="Altura final"
+                        id="altura-maxima"
+                        valor={fila.textoAltura}
+                        automatico={false}
+                        invalido={!lerLimiteOpcional(fila.textoAltura, 'altura', true).ok}
+                        aoMudar={fila.definirTextoAltura}
+                      />
+                    </div>
+                  </>
+                )}
+              </fieldset>
             </fieldset>
             {pedeFundo ? (
               <label className="campo">
@@ -460,14 +554,47 @@ export function TelaLote() {
             {!limites.ok ? <p className="aviso" role="alert">{limites.mensagem}</p> : null}
             <details className="como-funciona">
               <summary>Como funciona</summary>
-              <p>A proporção é mantida e imagens menores não são ampliadas. Com largura e altura, a imagem cabe nos dois sem recorte.</p>
-              <p>Enquanto “Manter dimensões originais” estiver marcado, os limites ficam guardados e não entram no processamento.</p>
+              <p>Com a proporção ligada, só uma dimensão é limite. A outra sai da proporção de cada imagem, sem ampliar nem recortar.</p>
+              <p>Desligar a proporção pede largura e altura finais. Se isso forçasse ampliar, a imagem não é processada.</p>
+              <p>Enquanto “Manter dimensões originais” estiver marcado, os valores ficam guardados e não entram no processamento.</p>
               <p>Escolher uma pasta não altera os arquivos originais. Cada nova compressão usa o arquivo de entrada.</p>
             </details>
           </section>
         </aside>
       </div>
     </main>
+  )
+}
+
+function CampoLimite({
+  rotulo,
+  id,
+  valor,
+  automatico,
+  invalido,
+  aoMudar,
+}: {
+  rotulo: string
+  id: string
+  valor: string
+  automatico: boolean
+  invalido: boolean
+  aoMudar: (valor: string) => void
+}) {
+  return (
+    <label className="campo">
+      {rotulo}
+      <input
+        id={automatico ? undefined : id}
+        type="text"
+        inputMode={automatico ? undefined : 'numeric'}
+        value={automatico ? 'Automática por imagem' : valor}
+        disabled={automatico}
+        readOnly={automatico}
+        aria-invalid={automatico ? undefined : invalido}
+        onChange={(evento) => aoMudar(evento.target.value)}
+      />
+    </label>
   )
 }
 

@@ -4,7 +4,7 @@ import { montarLimites } from '../core/dimensoes'
 import { estadoDeResultado, type EstadoItem } from '../core/fila'
 import { mensagemDoCodigo } from '../core/mensagens'
 import { descreverPar } from '../core/tamanhos'
-import type { FormatoSaida, InspecaoImagem, Preset } from '../core/tipos'
+import type { FormatoSaida, InspecaoImagem, Preset, ReferenciaDimensao } from '../core/tipos'
 import { classificarArquivo, pareceImagemAceita } from '../importacao/classificar'
 import { LIMITE_BYTES } from '../core/inspecionar'
 import { coletarDoArraste, entradasDeLista } from '../importacao/lerSoltura'
@@ -57,6 +57,8 @@ export function useFila() {
     preset: 'equilibrado' as Preset,
     fundo: '',
     manterDimensoes: true,
+    manterProporcao: true,
+    referencia: 'largura' as ReferenciaDimensao,
     textoLargura: '',
     textoAltura: '',
   })
@@ -68,11 +70,22 @@ export function useFila() {
   const [preset, definirPreset] = useState<Preset>('equilibrado')
   const [fundo, definirFundo] = useState('')
   const [manterDimensoes, definirManterDimensoes] = useState(true)
+  const [manterProporcao, definirManterProporcao] = useState(true)
+  const [referencia, definirReferencia] = useState<ReferenciaDimensao>('largura')
   const [textoLargura, definirTextoLargura] = useState('')
   const [textoAltura, definirTextoAltura] = useState('')
   const [comparandoId, definirComparandoId] = useState<string | null>(null)
 
-  opcoesRef.current = { formato, preset, fundo, manterDimensoes, textoLargura, textoAltura }
+  opcoesRef.current = {
+    formato,
+    preset,
+    fundo,
+    manterDimensoes,
+    manterProporcao,
+    referencia,
+    textoLargura,
+    textoAltura,
+  }
 
   const definirItens = useCallback((proximo: ItemFila[] | ((atual: ItemFila[]) => ItemFila[])) => {
     const valor = typeof proximo === 'function' ? proximo(itensRef.current) : proximo
@@ -132,9 +145,7 @@ export function useFila() {
         formato: opcoesRef.current.formato,
         preset: opcoesRef.current.preset,
         fundoJpeg: fundoValido(opcoesRef.current.fundo) ? opcoesRef.current.fundo : undefined,
-        larguraMaxima: limites.larguraMaxima,
-        alturaMaxima: limites.alturaMaxima,
-        ampliar: limites.ampliar,
+        pedidoDimensao: limites.pedido,
       }
       if (opcoes.formato === 'jpeg' && item.inspecao?.possuiAlpha && !opcoes.fundoJpeg) {
         const texto = mensagemDoCodigo('ALPHA_BACKGROUND_REQUIRED')
@@ -432,6 +443,10 @@ export function useFila() {
     definirFundo,
     manterDimensoes,
     definirManterDimensoes,
+    manterProporcao,
+    definirManterProporcao,
+    referencia,
+    definirReferencia,
     textoLargura,
     definirTextoLargura,
     textoAltura,

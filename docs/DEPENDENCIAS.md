@@ -21,6 +21,7 @@ TypeScript 7.0.2 é a versão `latest` no npm, mas `typescript-eslint` 8.71.1 de
 | Item | Finalidade | Versão | Licença | Estado |
 | --- | --- | --- | --- | --- |
 | React / react-dom | Interface | 19.3.0 | MIT | Em uso |
+| lucide-react | Ícones SVG locais | 1.55.0 | ISC | Em uso. Conferido em https://lucide.dev/guide/react em 12 de outubro de 2026. Sem CDN |
 | Vite | Build e worker | 8.3.4 | MIT | Build de produção gerou os WASM |
 | @vitejs/plugin-react | JSX | 6.1.2 | MIT | Em uso |
 | TypeScript | Contratos strict | 6.0.3 | Apache-2.0 | Em uso |

@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { unzipSync } from 'fflate'
 import { expect, test, type Page } from '@playwright/test'
-import { calcularDimensoes } from '../../src/core/dimensoes'
+import { resolverDimensoes } from '../../src/core/dimensoes'
 import { compararPixels } from '../../src/core/pixels'
 import { formatarTamanho } from '../../src/core/tamanhos'
 import { redimensionarRgba } from '../../src/motor/redimensionar'
@@ -27,22 +27,75 @@ test.beforeAll(() => {
   )
 })
 
-test('aplica um limite, dois limites, imagem menor e arredondamento', async ({ page }) => {
+test('limita pela largura ou pela altura e não amplia a imagem menor', async ({ page }) => {
   test.setTimeout(180_000)
   await abrir(page)
   await page.getByLabel('Preset').selectOption('leve')
   await soltarDimensoes(page)
-  await conferirSaida(page, 'horizontal.png', { largura: '100', altura: '' }, 100, 50)
-  await conferirSaida(page, 'vertical.png', { largura: '', altura: '80' }, 40, 80)
-  await conferirSaida(page, 'ambos.png', { largura: '50', altura: '80' }, 50, 25)
-  await conferirSaida(page, 'menor.png', { largura: '200', altura: '180' }, 40, 30)
-  await conferirSaida(page, 'arredondar.png', { largura: '10', altura: '' }, 10, 3)
+  await conferirSaida(page, 'horizontal.png', 'largura', '100', 100, 50)
+  await conferirSaida(page, 'vertical.png', 'altura', '80', 40, 80)
+  await conferirSaida(page, 'menor.png', 'largura', '200', 40, 30)
+  await conferirSaida(page, 'arredondar.png', 'largura', '10', 10, 3)
+})
+
+test('um lote com proporções diferentes calcula cada imagem', async ({ page }) => {
+  test.setTimeout(180_000)
+  await abrir(page)
+  await page.getByLabel('Preset').selectOption('leve')
+  await soltarDimensoes(page)
+  await page.getByLabel('Largura máxima').fill('50')
+  await page.locator('#arquivo').setInputFiles([join(pasta, 'horizontal.png'), join(pasta, 'vertical.png')])
+  await page.getByRole('button', { name: 'Comprimir lote' }).click()
+  const horizontal = page.locator('[data-caminho="horizontal.png"]')
+  const vertical = page.locator('[data-caminho="vertical.png"]')
+  await expect(horizontal).toHaveAttribute('data-largura-saida', '50', { timeout: 120_000 })
+  await expect(horizontal).toHaveAttribute('data-altura-saida', '25')
+  await expect(vertical).toHaveAttribute('data-largura-saida', '50')
+  await expect(vertical).toHaveAttribute('data-altura-saida', '100')
+})
+
+test('dimensões exatas deformam, recusam ampliação e exigem os dois campos', async ({ page }) => {
+  test.setTimeout(120_000)
+  await abrir(page)
+  await page.getByLabel('Preset').selectOption('leve')
+  await soltarDimensoes(page)
+  await page.getByRole('checkbox', { name: 'Manter proporção' }).uncheck()
+  await page.getByLabel('Largura final').fill('40')
+  await expect(page.getByRole('alert')).toContainText('largura final e a altura final')
+  await expect(page.getByRole('button', { name: 'Comprimir lote' })).toBeDisabled()
+  await page.getByLabel('Altura final').fill('abc')
+  await expect(page.getByRole('alert')).toContainText('altura final')
+  await page.getByLabel('Altura final').fill('40')
+  await expect(page.getByText('Dimensões exatas podem deformar a imagem.')).toBeVisible()
+  await page.locator('#arquivo').setInputFiles(join(pasta, 'horizontal.png'))
+  await page.getByRole('button', { name: 'Comprimir lote' }).click()
+  const linha = page.locator('[data-teste="linha"]')
+  await expect(linha).toHaveAttribute('data-largura-saida', '40', { timeout: 60_000 })
+  await expect(linha).toHaveAttribute('data-altura-saida', '40')
+
+  await page.getByLabel('Largura final').fill('80')
+  await page.getByLabel('Altura final').fill('30')
+  await page.getByRole('button', { name: 'Limpar' }).click()
+  await page.locator('#arquivo').setInputFiles(join(pasta, 'menor.png'))
+  await page.getByRole('button', { name: 'Comprimir lote' }).click()
+  await expect(page.locator('[data-teste="linha"]')).toHaveAttribute('data-estado', 'falha', { timeout: 60_000 })
+  await expect(page.locator('[data-teste="linha"]')).toContainText('não amplia automaticamente')
 })
 
 test('recusa limite inválido antes de processar', async ({ page }) => {
   await abrir(page)
   await page.locator('#arquivo').setInputFiles(join(fixtures, 'texto.png'))
+  await expect(page.getByLabel('Largura máxima')).toBeDisabled()
   await soltarDimensoes(page)
+  await page.getByLabel('Largura máxima').fill('100')
+  await page.getByRole('radio', { name: 'Limitar pela altura' }).check()
+  await page.getByLabel('Altura máxima').fill('80')
+  await expect(page.getByLabel('Largura máxima')).toHaveValue('Automática por imagem')
+  await page.getByRole('radio', { name: 'Limitar pela largura' }).check()
+  await expect(page.getByLabel('Largura máxima')).toHaveValue('100')
+  await page.getByRole('radio', { name: 'Limitar pela altura' }).check()
+  await expect(page.getByLabel('Altura máxima')).toHaveValue('80')
+  await page.getByRole('radio', { name: 'Limitar pela largura' }).check()
   await page.getByLabel('Largura máxima').fill('0')
   await expect(page.getByRole('alert')).toContainText('largura máxima')
   await expect(page.getByRole('button', { name: 'Comprimir lote' })).toBeDisabled()
@@ -99,7 +152,9 @@ test('reprocessa o original e não acumula o redimensionamento', async ({ page }
   const anterior = await linha.getAttribute('data-conclusao')
   await linha.getByRole('button', { name: 'Tentar novamente' }).click()
   await expect.poll(async () => linha.getAttribute('data-conclusao'), { timeout: 60_000 }).not.toBe(anterior)
-  const dimensao = calcularDimensoes(30, 15, { larguraMaxima: 8 })
+  const resolvido = resolverDimensoes(30, 15, { modo: 'proporcional', referencia: 'largura', largura: 8 })
+  if (!resolvido.ok) throw new Error('O limite proporcional deveria ser aceito.')
+  const dimensao = resolvido.dimensao
   expect(await linha.getAttribute('data-largura-saida')).toBe(String(dimensao.largura))
   expect(await linha.getAttribute('data-altura-saida')).toBe(String(dimensao.altura))
   expect(Number(await linha.getAttribute('data-bytes-entrada'))).toBe(entrada)
@@ -123,7 +178,9 @@ test('congela o limite do item em andamento e aplica o novo no seguinte', async 
   writeFileSync(join(pasta, 'seguinte.png'), pngRgba(200, 100, () => [90, 90, 90, 255]))
   await abrir(page)
   await page.getByLabel('Preset').selectOption('maxima')
+  await soltarDimensoes(page)
   await page.getByLabel('Largura máxima').fill('100')
+  await page.getByRole('checkbox', { name: 'Manter dimensões originais' }).check()
   await page.locator('#arquivo').setInputFiles([join(pasta, 'grande.png'), join(pasta, 'seguinte.png')])
   await expect(page.locator('[data-teste="linha"]')).toHaveCount(2)
   await page.getByRole('button', { name: 'Comprimir lote' }).click()
@@ -233,15 +290,16 @@ async function soltarDimensoes(page: Page) {
 async function conferirSaida(
   page: Page,
   nome: string,
-  limites: { largura: string; altura: string },
+  referencia: 'largura' | 'altura',
+  limite: string,
   largura: number,
   altura: number,
 ) {
   if ((await page.locator('[data-teste="linha"]').count()) > 0) {
     await page.getByRole('button', { name: 'Limpar' }).click()
   }
-  await page.getByLabel('Largura máxima').fill(limites.largura)
-  await page.getByLabel('Altura máxima').fill(limites.altura)
+  await page.getByRole('radio', { name: referencia === 'largura' ? 'Limitar pela largura' : 'Limitar pela altura' }).check()
+  await page.getByLabel(referencia === 'largura' ? 'Largura máxima' : 'Altura máxima').fill(limite)
   await page.locator('#arquivo').setInputFiles(join(pasta, nome))
   await page.getByRole('button', { name: 'Comprimir lote' }).click()
   const linha = page.locator('[data-teste="linha"]')

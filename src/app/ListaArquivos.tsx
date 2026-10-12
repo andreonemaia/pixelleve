@@ -2,7 +2,9 @@ import { caminhoDeSaida, partirCaminho } from '../core/caminhos'
 import type { EstadoItem } from '../core/fila'
 import { descricaoFormato } from '../core/inspecionar'
 import { descreverPar, formatarTamanho } from '../core/tamanhos'
+import { Columns2, Download, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { Comparacao } from './Comparacao'
+import { Icone } from './Icone'
 import { Miniatura } from './Miniatura'
 import type { ItemFila } from './usarFila'
 
@@ -102,25 +104,30 @@ export function ListaArquivos({
             </div>
             <div className="acoes-linha">
               <button type="button" onClick={(evento) => aoComparar(item.id, evento.currentTarget)}>
+                <Icone icone={Columns2} />
                 Comparar
               </button>
               {item.resultado ? (
                 aoSalvar ? (
                   <button type="button" data-teste="baixar" onClick={() => aoSalvar(item)}>
+                    <Icone icone={Save} />
                     Salvar
                   </button>
                 ) : (
                   <a data-teste="baixar" className="acao" href={item.resultado.url} download={nomeBaixar}>
+                    <Icone icone={Download} />
                     Baixar
                   </a>
                 )
               ) : null}
               {item.estado !== 'aguardando' && item.estado !== 'processando' ? (
-                <button type="button" onClick={() => aoTentarNovamente(item.id)}>
+                <button type="button" className="suave" onClick={() => aoTentarNovamente(item.id)}>
+                  <Icone icone={RotateCcw} />
                   Tentar novamente
                 </button>
               ) : null}
-              <button type="button" onClick={() => aoRemover(item.id)} disabled={item.estado === 'processando'}>
+              <button type="button" className="suave" onClick={() => aoRemover(item.id)} disabled={item.estado === 'processando'}>
+                <Icone icone={Trash2} />
                 Remover
               </button>
             </div>

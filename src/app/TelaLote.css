@@ -12,7 +12,7 @@
   --raio: 12px;
   --raio-controle: 10px;
   --espaco: 12px;
-  --sombra: 0 1px 2px rgb(23 42 40 / 6%);
+  --sombra: 0 1px 2px rgb(23 42 40 / 5%), 0 8px 24px rgb(23 42 40 / 5%);
   color: var(--texto);
   background: var(--fundo);
   font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
@@ -123,6 +123,24 @@ h1 {
 
 .entrada.arrastando {
   background: var(--destaque-suave);
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgb(20 125 100 / 16%), var(--sombra);
+}
+
+.entrada-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 10px;
+  color: var(--destaque);
+  background: var(--destaque-suave);
+  border-radius: 999px;
+}
+
+.entrada.compacta .entrada-marca {
+  display: none;
 }
 
 .entrada.compacta {
@@ -136,7 +154,11 @@ h1 {
 .entrada h2,
 .painel h2,
 .lista h2,
-.comparacao h2 {
+.comparacao h2,
+.dimensoes legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   font-size: 1rem;
 }
@@ -199,6 +221,10 @@ h1 {
 
 button,
 .acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid var(--borda);
   border-radius: var(--raio-controle);
   background: var(--superficie);
@@ -208,6 +234,29 @@ button,
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
+}
+
+button .icone,
+.acao .icone {
+  flex: none;
+}
+
+button:hover:not(:disabled),
+.acao:hover {
+  border-color: #c5d4ce;
+  background: #fbfcfb;
+}
+
+.suave {
+  background: transparent;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.apoio {
+  border-color: var(--destaque);
+  background: var(--superficie);
+  color: var(--destaque);
 }
 
 button:disabled {
@@ -221,6 +270,11 @@ button:disabled {
   border-color: var(--destaque);
   background: var(--destaque);
   color: #ffffff;
+}
+
+.principal:hover:not(:disabled) {
+  border-color: #116b55;
+  background: #116b55;
 }
 
 .principal:disabled {
@@ -324,13 +378,20 @@ input[type='checkbox'] {
   font-weight: 700;
 }
 
-.campos-limite.inativos {
+.controles-dimensao {
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.controles-dimensao:disabled {
   opacity: 0.55;
 }
 
-.campos-limite.inativos input {
-  background: var(--fundo);
-  color: var(--texto-suave);
+.referencia {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .como-funciona {
