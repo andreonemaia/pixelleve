@@ -6,7 +6,7 @@ import {
   decodificarImagem,
   otimizarPng,
 } from '../codecs/codecs'
-import { calcularDimensoes, limiteDimensaoValido } from '../core/dimensoes'
+import { limiteDimensaoValido, resolverDimensoes } from '../core/dimensoes'
 import { escolherSaida } from '../core/escolherSaida'
 import { ErroMotor } from '../core/erros'
 import { inspecionarImagem, LIMITE_PIXELS } from '../core/inspecionar'
@@ -36,18 +36,11 @@ export async function processarImagem(
   if (formatoSaida === 'jpeg' && origem.possuiAlpha && !fundoValido(opcoes.fundoJpeg)) {
     throw new ErroMotor('ALPHA_BACKGROUND_REQUIRED')
   }
-  if (!limiteDimensaoValido(opcoes.larguraMaxima) || !limiteDimensaoValido(opcoes.alturaMaxima)) {
-    throw new ErroMotor('INVALID_IMAGE')
-  }
+  if (!pedidoValido(opcoes.pedidoDimensao)) throw new ErroMotor('INVALID_IMAGE')
+  const previsto = resolverDimensoes(origem.largura, origem.altura, opcoes.pedidoDimensao)
+  if (!previsto.ok) throw new ErroMotor(previsto.codigo)
 
-  const limites = {
-    larguraMaxima: opcoes.larguraMaxima,
-    alturaMaxima: opcoes.alturaMaxima,
-    ampliar: opcoes.ampliar === true,
-  }
-  const previsto = calcularDimensoes(origem.largura, origem.altura, limites)
-
-  if (formatoSaida === 'png' && origem.formato === 'png' && !previsto.redimensionou) {
+  if (formatoSaida === 'png' && origem.formato === 'png' && !previsto.dimensao.redimensionou) {
     const otimizado = await otimizarPng(entrada, nivelOxiPng(opcoes.preset))
     const escolha = escolherSaida(entrada, otimizado, manter)
     conferirArquivo(escolha.bytes, 'png', origem.largura, origem.altura)
@@ -61,7 +54,9 @@ export async function processarImagem(
   const imagem = await decodificarImagem(origem.formato, entrada)
   if (imagem.width * imagem.height > LIMITE_PIXELS) throw new ErroMotor('TOO_LARGE')
 
-  const dimensao = calcularDimensoes(imagem.width, imagem.height, limites)
+  const resolvido = resolverDimensoes(imagem.width, imagem.height, opcoes.pedidoDimensao)
+  if (!resolvido.ok) throw new ErroMotor(resolvido.codigo)
+  const dimensao = resolvido.dimensao
   if (dimensao.largura * dimensao.altura > LIMITE_PIXELS) throw new ErroMotor('TOO_LARGE')
   const redimensionada = dimensao.redimensionou
     ? criarImagem(
@@ -104,8 +99,12 @@ export async function processarImagem(
       : 'A saída foi recodificada e não inclui EXIF, GPS ou outros metadados do original.',
   ]
   if (dimensao.redimensionou) {
+    const detalhe =
+      opcoes.pedidoDimensao.modo === 'exato'
+        ? 'As dimensões exatas foram aplicadas.'
+        : 'A proporção foi mantida e a imagem não foi ampliada.'
     avisos.push(
-      `Redimensionada de ${imagem.width}×${imagem.height} para ${larguraFinal}×${alturaFinal}. A proporção foi mantida${limites.ampliar ? '.' : ' e a imagem não foi ampliada.'}`,
+      `Redimensionada de ${imagem.width}×${imagem.height} para ${larguraFinal}×${alturaFinal}. ${detalhe}`,
     )
   }
   if (formatoSaida === 'jpeg' && transparente) {
@@ -150,6 +149,13 @@ function montarSaida(
     usouOriginal,
     avisos,
   }
+}
+
+function pedidoValido(pedido: OpcoesProcessamento['pedidoDimensao']): boolean {
+  if (pedido.modo === 'nenhum') return true
+  if (pedido.modo === 'exato') return limiteDimensaoValido(pedido.largura) && limiteDimensaoValido(pedido.altura)
+  const valor = pedido.referencia === 'largura' ? pedido.largura : pedido.altura
+  return limiteDimensaoValido(valor)
 }
 
 function conferirArquivo(

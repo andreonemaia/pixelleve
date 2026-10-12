@@ -1,12 +1,9 @@
 import { formatarPercentual } from './metricas'
+import type { CodigoErro, PedidoDimensao, ReferenciaDimensao } from './tipos'
 
 export const LIMITE_LADO = 16_384
 
-export interface LimitesRedimensionamento {
-  larguraMaxima?: number
-  alturaMaxima?: number
-  ampliar?: boolean
-}
+export type { PedidoDimensao, ReferenciaDimensao }
 
 export interface DimensaoFinal {
   largura: number
@@ -23,9 +20,16 @@ export function limiteDimensaoValido(valor: number | undefined): boolean {
 export function lerLimiteOpcional(
   texto: string,
   lado: 'largura' | 'altura',
+  exato = false,
 ): { ok: true; valor?: number } | { ok: false; mensagem: string } {
   const limpo = texto.trim()
-  const nome = lado === 'largura' ? 'largura máxima' : 'altura máxima'
+  const nome = exato
+    ? lado === 'largura'
+      ? 'largura final'
+      : 'altura final'
+    : lado === 'largura'
+      ? 'largura máxima'
+      : 'altura máxima'
   if (limpo === '') return { ok: true }
   if (!/^\d+$/.test(limpo)) {
     return { ok: false, mensagem: `A ${nome} precisa ser um número inteiro entre 1 e ${LIMITE_LADO}.` }
@@ -39,36 +43,65 @@ export function lerLimiteOpcional(
 
 export function montarLimites(entrada: {
   manterDimensoes: boolean
+  manterProporcao: boolean
+  referencia: ReferenciaDimensao
   textoLargura: string
   textoAltura: string
-}): { ok: true; larguraMaxima?: number; alturaMaxima?: number; ampliar: false } | { ok: false; mensagem: string } {
-  if (entrada.manterDimensoes) return { ok: true, ampliar: false }
-  const largura = lerLimiteOpcional(entrada.textoLargura, 'largura')
-  const altura = lerLimiteOpcional(entrada.textoAltura, 'altura')
-  if (!largura.ok || !altura.ok) {
-    return {
-      ok: false,
-      mensagem: [largura.ok ? '' : largura.mensagem, altura.ok ? '' : altura.mensagem].filter(Boolean).join(' '),
+}): { ok: true; pedido: PedidoDimensao } | { ok: false; mensagem: string } {
+  if (entrada.manterDimensoes) return { ok: true, pedido: { modo: 'nenhum' } }
+
+  if (entrada.manterProporcao) {
+    const lado = entrada.referencia
+    const texto = lado === 'largura' ? entrada.textoLargura : entrada.textoAltura
+    const lido = lerLimiteOpcional(texto, lado)
+    if (!lido.ok) return lido
+    if (lido.valor === undefined) {
+      return {
+        ok: false,
+        mensagem: lado === 'largura' ? 'Informe a largura máxima.' : 'Informe a altura máxima.',
+      }
     }
+    return lado === 'largura'
+      ? { ok: true, pedido: { modo: 'proporcional', referencia: 'largura', largura: lido.valor } }
+      : { ok: true, pedido: { modo: 'proporcional', referencia: 'altura', altura: lido.valor } }
   }
-  return { ok: true, larguraMaxima: largura.valor, alturaMaxima: altura.valor, ampliar: false }
+
+  const largura = lerLimiteOpcional(entrada.textoLargura, 'largura', true)
+  const altura = lerLimiteOpcional(entrada.textoAltura, 'altura', true)
+  if (!largura.ok) return largura
+  if (!altura.ok) return altura
+  if (largura.valor === undefined || altura.valor === undefined) {
+    return { ok: false, mensagem: 'Informe a largura final e a altura final.' }
+  }
+  return { ok: true, pedido: { modo: 'exato', largura: largura.valor, altura: altura.valor } }
 }
 
-export function calcularDimensoes(largura: number, altura: number, limites: LimitesRedimensionamento): DimensaoFinal {
-  const ampliar = limites.ampliar === true
-  let escala = ampliar ? Number.POSITIVE_INFINITY : 1
-  if (limites.larguraMaxima) escala = Math.min(escala, limites.larguraMaxima / largura)
-  if (limites.alturaMaxima) escala = Math.min(escala, limites.alturaMaxima / altura)
-  if (!Number.isFinite(escala)) escala = 1
-  if (escala === 1) {
-    return { largura, altura, redimensionou: false, escalaLargura: 1, escalaAltura: 1 }
-  }
+export function resolverDimensoes(
+  largura: number,
+  altura: number,
+  pedido: PedidoDimensao,
+): { ok: true; dimensao: DimensaoFinal } | { ok: false; codigo: CodigoErro } {
+  if (pedido.modo === 'nenhum') return { ok: true, dimensao: dimensaoOriginal(largura, altura) }
+  if (pedido.modo === 'exato') return dimensaoExata(largura, altura, pedido.largura, pedido.altura)
+  const limite = pedido.referencia === 'largura' ? pedido.largura : pedido.altura
+  return { ok: true, dimensao: dimensaoProporcional(largura, altura, pedido.referencia, limite) }
+}
 
+function dimensaoProporcional(
+  largura: number,
+  altura: number,
+  referencia: ReferenciaDimensao,
+  limite: number,
+): DimensaoFinal {
+  const lado = referencia === 'largura' ? largura : altura
+  if (limite >= lado) return dimensaoOriginal(largura, altura)
+  const escala = limite / lado
   let novaLargura = Math.max(1, Math.round(largura * escala))
   let novaAltura = Math.max(1, Math.round(altura * escala))
-  if (limites.larguraMaxima && novaLargura > limites.larguraMaxima) novaLargura = limites.larguraMaxima
-  if (limites.alturaMaxima && novaAltura > limites.alturaMaxima) novaAltura = limites.alturaMaxima
+  if (referencia === 'largura' && novaLargura > limite) novaLargura = limite
+  if (referencia === 'altura' && novaAltura > limite) novaAltura = limite
   const redimensionou = novaLargura !== largura || novaAltura !== altura
+  if (!redimensionou) return dimensaoOriginal(largura, altura)
   return {
     largura: novaLargura,
     altura: novaAltura,
@@ -76,6 +109,32 @@ export function calcularDimensoes(largura: number, altura: number, limites: Limi
     escalaLargura: novaLargura / largura,
     escalaAltura: novaAltura / altura,
   }
+}
+
+function dimensaoExata(
+  largura: number,
+  altura: number,
+  destinoLargura: number,
+  destinoAltura: number,
+): { ok: true; dimensao: DimensaoFinal } | { ok: false; codigo: 'AMPLIACAO_RECUSADA' } {
+  if (destinoLargura > largura || destinoAltura > altura) {
+    return { ok: false, codigo: 'AMPLIACAO_RECUSADA' }
+  }
+  const redimensionou = destinoLargura !== largura || destinoAltura !== altura
+  return {
+    ok: true,
+    dimensao: {
+      largura: destinoLargura,
+      altura: destinoAltura,
+      redimensionou,
+      escalaLargura: destinoLargura / largura,
+      escalaAltura: destinoAltura / altura,
+    },
+  }
+}
+
+function dimensaoOriginal(largura: number, altura: number): DimensaoFinal {
+  return { largura, altura, redimensionou: false, escalaLargura: 1, escalaAltura: 1 }
 }
 
 export function descreverEscalas(

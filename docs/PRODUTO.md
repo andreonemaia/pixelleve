@@ -14,7 +14,7 @@ Usuário inicial: desenvolvedor que prepara imagens para landing pages e aplica�
 | R02 | Manter formato | JPEG/WebP são codificados; PNG é otimizado sem perdas; resultado maior é descartado quando não há transformação pedida |
 | R03 | Converter formato | Saída PNG/JPEG/WebP válida, com MIME e extensão coerentes; aumento de tamanho é informado |
 | R04 | Presets | Leve, Equilibrado e Máxima redução; indicam se há perdas |
-| R05 | Redimensionar | Largura máxima e altura máxima opcionais; mantém proporção e não amplia por padrão |
+| R05 | Redimensionar | Por padrão mantém as dimensões originais. Com redimensionamento, ou limita um lado e calcula o outro por imagem, ou pede largura e altura finais. Não amplia |
 | R06 | Fila | Estados reais, cancelamento, nova tentativa e isolamento de erro |
 | R07 | Comparar | Original e resultado alinhados, zoom comum e slider utilizável por teclado |
 | R08 | Download | Individual e ZIP; nomes únicos e originais preservados |
@@ -47,9 +47,9 @@ A fila, a economia e a importação em lote passaram na frente de redimensionar 
 
 - A economia de cada imagem e a do lote usam os bytes reais. O percentual do lote é a soma das entradas contra a soma das saídas. Durante o processamento, “Economia até agora” só inclui pares já concluídos. Itens aguardando, com falha, ignorados ou cancelados aparecem à parte e não entram como saída zero.
 - Dá para escolher várias imagens, escolher uma pasta com subpastas ou arrastar quando o navegador expõe a API. Selecionar a pasta não altera os originais. Arquivo incompatível é ignorado e contado. Arquivo inválido ou animado fica na fila como falha e não interrompe os demais.
-- A fila mostra miniatura sob demanda, caminho relativo, tamanhos, dimensões originais e finais, economia, estado e ações de remover, comparar, baixar e tentar novamente. Um worker pesado por vez. Cada job congela formato, preset, fundo e limites de dimensão, e reprocessa a partir do original.
+- A fila mostra miniatura sob demanda, caminho relativo, tamanhos, dimensões originais e finais, economia, estado e ações de remover, comparar, baixar e tentar novamente. Um worker pesado por vez. Cada job congela formato, preset, fundo, modo de redimensionamento e dimensão de referência, e reprocessa a partir do original.
 - O ZIP local usa fflate, preserva subpastas, desambigua nomes e deixa de fora falha e cancelamento. Acima de 256 MiB de saídas retidas, a exportação completa é recusada e a pessoa pode baixar uma seleção.
-- Dá para manter as dimensões originais, o que vem marcado por padrão, ou informar largura máxima e altura máxima. A proporção é mantida e imagens menores não são ampliadas. Se os dois limites existem, a imagem cabe nos dois sem recorte. Um redimensionamento pedido é entregue mesmo quando o arquivo não fica menor.
+- Dá para manter as dimensões originais, o que vem marcado por padrão. Desmarcado, “Manter proporção” começa ligado: a pessoa limita pela largura ou pela altura, e a outra dimensão sai da proporção de cada imagem, sem um valor compartilhado pelo lote, sem recorte e sem ampliação. Desligar a proporção pede largura e altura finais e pode deformar. Se o pedido exato ampliaria a imagem, aquela imagem não é processada. Um redimensionamento pedido é entregue mesmo quando o arquivo não fica menor.
 - A comparação abre ao selecionar a imagem ou em “Comparar”, com fundo quadriculado, slider por teclado, zoom sincronizado, “Ajustar à tela” e “100%”. Em 100%, cada imagem usa o próprio tamanho em pixels. Escape fecha o diálogo e devolve o foco. Fotos reais e EXIF continuam sem verificação.
 
 ## Limites técnicos iniciais

@@ -2,7 +2,9 @@ import { caminhoDeSaida, partirCaminho } from '../core/caminhos'
 import type { EstadoItem } from '../core/fila'
 import { descricaoFormato } from '../core/inspecionar'
 import { descreverPar, formatarTamanho } from '../core/tamanhos'
+import { Columns2, Download, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { Comparacao } from './Comparacao'
+import { Icone } from './Icone'
 import { Miniatura } from './Miniatura'
 import type { ItemFila } from './usarFila'
 
@@ -14,6 +16,7 @@ interface ListaArquivosProps {
   aoRemover: (id: string) => void
   aoTentarNovamente: (id: string) => void
   aoAlternarSelecao: (id: string) => void
+  aoSalvar?: (item: ItemFila) => void
 }
 
 export function ListaArquivos({
@@ -24,13 +27,14 @@ export function ListaArquivos({
   aoRemover,
   aoTentarNovamente,
   aoAlternarSelecao,
+  aoSalvar,
 }: ListaArquivosProps) {
   const comparando = itens.find((item) => item.id === comparandoId) ?? null
+  if (itens.length === 0) return null
 
   return (
     <section className="lista">
       <h2>Arquivos</h2>
-      {itens.length === 0 ? <p className="vazio-lista">Nenhuma imagem na fila.</p> : null}
       {itens.map((item) => {
         const partes = partirCaminho(item.caminhoRelativo)
         const nomeBaixar = item.resultado
@@ -74,7 +78,7 @@ export function ListaArquivos({
             </button>
             <div>
               {item.resultado ? (
-                <span className="economia-item">
+                <span className={classePar(item.resultado.bytesEntrada, item.resultado.bytesSaida, item.resultado.usouOriginal)}>
                   {descreverPar(item.resultado.bytesEntrada, item.resultado.bytesSaida, item.resultado.usouOriginal)}
                 </span>
               ) : (
@@ -100,26 +104,43 @@ export function ListaArquivos({
             </div>
             <div className="acoes-linha">
               <button type="button" onClick={(evento) => aoComparar(item.id, evento.currentTarget)}>
+                <Icone icone={Columns2} />
                 Comparar
               </button>
               {item.resultado ? (
-                <a data-teste="baixar" className="acao" href={item.resultado.url} download={nomeBaixar}>
-                  Baixar
-                </a>
+                aoSalvar ? (
+                  <button type="button" data-teste="baixar" onClick={() => aoSalvar(item)}>
+                    <Icone icone={Save} />
+                    Salvar
+                  </button>
+                ) : (
+                  <a data-teste="baixar" className="acao" href={item.resultado.url} download={nomeBaixar}>
+                    <Icone icone={Download} />
+                    Baixar
+                  </a>
+                )
               ) : null}
               {item.estado !== 'aguardando' && item.estado !== 'processando' ? (
-                <button type="button" onClick={() => aoTentarNovamente(item.id)}>
+                <button type="button" className="suave" onClick={() => aoTentarNovamente(item.id)}>
+                  <Icone icone={RotateCcw} />
                   Tentar novamente
                 </button>
               ) : null}
-              <button type="button" onClick={() => aoRemover(item.id)} disabled={item.estado === 'processando'}>
+              <button type="button" className="suave" onClick={() => aoRemover(item.id)} disabled={item.estado === 'processando'}>
+                <Icone icone={Trash2} />
                 Remover
               </button>
             </div>
           </article>
         )
       })}
-      {comparando ? <Comparacao item={comparando} aoFechar={aoFecharComparacao} /> : null}
+      {comparando ? (
+        <Comparacao
+          item={comparando}
+          aoFechar={aoFecharComparacao}
+          aoSalvar={aoSalvar ? () => aoSalvar(comparando) : undefined}
+        />
+      ) : null}
     </section>
   )
 }
@@ -144,8 +165,16 @@ function rotuloEstado(estado: EstadoItem): string {
 }
 
 function classeEstado(estado: EstadoItem): string {
-  if (estado === 'falha' || estado === 'maior') return 'estado estado-falha'
+  if (estado === 'falha') return 'estado estado-falha'
+  if (estado === 'maior') return 'estado estado-maior'
   if (estado === 'cancelado') return 'estado estado-cancelado'
   if (estado === 'concluido' || estado === 'sem-reducao') return 'estado estado-ok'
+  if (estado === 'processando') return 'estado estado-processando'
   return 'estado'
+}
+
+function classePar(entrada: number, saida: number, usouOriginal: boolean): string {
+  if (usouOriginal || saida === entrada) return 'economia-item economia-neutra'
+  if (saida > entrada) return 'economia-item economia-aumento'
+  return 'economia-item economia-ok'
 }

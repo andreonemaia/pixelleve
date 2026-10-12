@@ -4,6 +4,14 @@ export type FormatoSaida = 'original' | FormatoImagem
 
 export type Preset = 'leve' | 'equilibrado' | 'maxima'
 
+export type ReferenciaDimensao = 'largura' | 'altura'
+
+export type PedidoDimensao =
+  | { modo: 'nenhum' }
+  | { modo: 'proporcional'; referencia: 'largura'; largura: number }
+  | { modo: 'proporcional'; referencia: 'altura'; altura: number }
+  | { modo: 'exato'; largura: number; altura: number }
+
 export type CodigoErro =
   | 'UNSUPPORTED_FORMAT'
   | 'ANIMATED_INPUT'
@@ -13,14 +21,13 @@ export type CodigoErro =
   | 'CODEC_UNAVAILABLE'
   | 'OUT_OF_MEMORY'
   | 'EXPORT_FAILED'
+  | 'AMPLIACAO_RECUSADA'
 
 export interface OpcoesProcessamento {
   formato: FormatoSaida
   preset: Preset
   fundoJpeg?: string
-  larguraMaxima?: number
-  alturaMaxima?: number
-  ampliar?: boolean
+  pedidoDimensao: PedidoDimensao
 }
 
 export interface InspecaoImagem {

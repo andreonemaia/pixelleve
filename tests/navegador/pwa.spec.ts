@@ -159,6 +159,65 @@ test('a atualização fica avisada e não recarrega enquanto a fila trabalha', a
   }
 })
 
+test('cancelar a atualização preserva resultados concluídos', async ({ page }) => {
+  test.setTimeout(180_000)
+  const original = readFileSync(swCaminho)
+  let navegou = 0
+  page.on('framenavigated', () => {
+    navegou += 1
+  })
+  try {
+    await page.goto('/')
+    await expect(page.locator('[data-teste="offline"]')).toBeVisible({ timeout: 60_000 })
+    writeFileSync(swCaminho, Buffer.concat([original, Buffer.from('\n// versao-cancelar\n')]))
+    await page.evaluate(async () => {
+      const registro = await navigator.serviceWorker.ready
+      await registro.update()
+    })
+    await expect(page.locator('[data-teste="atualizacao"]')).toBeVisible({ timeout: 30_000 })
+    await page.locator('#arquivo').setInputFiles(join(fixtures, 'texto.png'))
+    await page.getByRole('button', { name: 'Comprimir lote' }).click()
+    await expect(page.locator('[data-teste="linha"]')).toHaveAttribute('data-estado', /concluido|sem-reducao|maior/)
+    await expect(page.locator('[data-teste="perda-sessao"]')).toContainText('ainda não foi salvo')
+    await expect(page.locator('[data-teste="atualizar"]')).toBeEnabled()
+    const antes = navegou
+    await page.getByRole('button', { name: 'Continuar nesta versão' }).click()
+    await expect(page.locator('[data-teste="atualizacao"]')).toHaveCount(0)
+    expect(navegou).toBe(antes)
+    await expect(page.locator('[data-teste="linha"]')).toHaveCount(1)
+    await expect(page.locator('[data-teste="offline"]')).toBeVisible()
+  } finally {
+    writeFileSync(swCaminho, original)
+  }
+})
+
+test('aceitar a atualização recarrega e descarta a sessão concluída', async ({ page }) => {
+  test.setTimeout(180_000)
+  const original = readFileSync(swCaminho)
+  try {
+    await page.goto('/')
+    await expect(page.locator('[data-teste="offline"]')).toBeVisible({ timeout: 60_000 })
+    writeFileSync(swCaminho, Buffer.concat([original, Buffer.from('\n// versao-aceitar\n')]))
+    await page.evaluate(async () => {
+      const registro = await navigator.serviceWorker.ready
+      await registro.update()
+    })
+    await expect(page.locator('[data-teste="atualizacao"]')).toBeVisible({ timeout: 30_000 })
+    await page.locator('#arquivo').setInputFiles(join(fixtures, 'texto.png'))
+    await page.getByRole('button', { name: 'Comprimir lote' }).click()
+    await expect(page.locator('[data-teste="linha"]')).toHaveAttribute('data-estado', /concluido|sem-reducao|maior/)
+    await expect(page.locator('[data-teste="perda-sessao"]')).toBeVisible()
+    await Promise.all([
+      page.waitForEvent('framenavigated'),
+      page.getByRole('button', { name: 'Atualizar agora' }).click(),
+    ])
+    await expect(page.getByRole('heading', { name: 'Imagens prontas para a web' })).toBeVisible()
+    await expect(page.locator('[data-teste="linha"]')).toHaveCount(0)
+  } finally {
+    writeFileSync(swCaminho, original)
+  }
+})
+
 function listarDist(pasta: string): string[] {
   const saida: string[] = []
   for (const nome of readdirSync(pasta)) {

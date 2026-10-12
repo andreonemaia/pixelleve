@@ -18,5 +18,7 @@ export function mensagemDoCodigo(codigo: CodigoErro): string {
       return 'Não houve memória suficiente para processar esta imagem.'
     case 'EXPORT_FAILED':
       return 'Não foi possível preparar o arquivo para download.'
+    case 'AMPLIACAO_RECUSADA':
+      return 'Estas dimensões ampliariam a imagem. O PixelLeve não amplia automaticamente.'
   }
 }
