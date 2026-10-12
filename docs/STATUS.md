@@ -16,13 +16,13 @@ Atualizado em 12 de outubro de 2026.
 - PWA no build de produção: manifesto `standalone`, ícones locais, service worker com registro `prompt` e precache da interface, do worker e dos sete WASM. O aviso “Pronto para usar offline” só aparece depois que esses codecs estão no cache.
 - Aviso de atualização da PWA: “Atualizar agora” fica desativado durante processamento e exportação. Se a sessão tem imagens ou resultados, a tela avisa que a recarga apaga o que não foi salvo fora do aplicativo e oferece “Continuar nesta versão”. A fila ociosa com itens continua sendo sessão com conteúdo. As imagens não são gravadas para contornar a recarga.
 - Tela compacta no mesmo CSS da web e do desktop: fonte do sistema, painel de configuração ao lado a partir de 1024 px e economia calculada dos bytes como resultado principal. Aumento e economia zero não usam a cor de sucesso.
-- Instalador 0.1.1, com essa tela e os codecs locais, em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.1_x64-setup.exe`. 2.617.614 bytes, SHA-256 `91961E3CEDBB4C7687583D2B3F1FB0145D86A03F12AF1A6E54D9F7480AEA073A`, 10 de outubro de 2026 às 01:04, `NotSigned`. A 0.1.0 de 9 de outubro às 17:51 continua no diretório e não herda esta prova.
+- Instalador 0.1.2, com o layout, os ícones e o redimensionamento por lado, em `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.2_x64-setup.exe`. 2.622.107 bytes, SHA-256 `89FCA03F8D8207EE38F2CBF2359D6379BB8BB93F074FFEF2BAC2C2F9E099DB41`, 12 de outubro de 2026 às 11:07, `NotSigned`, commit `c78b01a`. A 0.1.1 de 10 de outubro às 01:04 e a 0.1.0 de 9 de outubro às 17:51 continuam no diretório e não herdam esta prova.
 
 ## Implementado, com validação incompleta
 
 - Desktop Windows no mesmo projeto: Tauri 2, diálogos nativos para várias imagens, pasta com subpastas, salvamento individual, ZIP e pasta de saída. Originais não são sobrescritos. Colisão de nome ganha sufixo. Cancelar o diálogo é uma ação normal. A permissão de arquivo fica limitada aos caminhos escolhidos na sessão. A leitura e a gravação de pasta seguem um arquivo por vez.
 - O build desktop empacota a interface e os sete WASM em `dist-desktop`, sem service worker e sem controles de instalação da PWA. O `npm run build` da web continua gerando `dist` com a PWA.
-- O instalador 0.1.0, NSIS por usuário e sem assinatura, foi a prova de 9 de outubro. O arquivo atual é o 0.1.1, no caminho citado acima.
+- O instalador 0.1.0, NSIS por usuário e sem assinatura, foi a prova de 9 de outubro. O arquivo atual é o 0.1.2, no caminho citado acima. A 0.1.1 permanece como build anterior.
 
 ## Validado no aplicativo instalado
 
@@ -54,6 +54,16 @@ Prova própria, em 10 de outubro de 2026, no WebView2 154.0.4258.62. O Vite e o 
 
 Não foram repetidos, nesta versão, o cancelamento longo, a pasta sem permissão, a desinstalação e o processamento com a rede desligada. `Disable-NetAdapter` no adaptador Ethernet retornou acesso negado. O adaptador permaneceu ligado.
 
+## Validado no instalador 0.1.2
+
+Prova própria, em 12 de outubro de 2026, a partir do commit `c78b01a`. O Vite e o preview estavam parados. A instalação `/S` saiu com código 0 e substituiu o executável em `%LOCALAPPDATA%\PixelLeve\pixelleve.exe`, que informa `FileVersion` e `ProductVersion` 0.1.2. O atalho do Menu Iniciar continua apontando para esse caminho. A interface foi conduzida pela porta de depuração, só nesta prova. Estes números não se aplicam aos instaladores 0.1.1 e 0.1.0.
+
+- Estado vazio sem barra da PWA. “Escolher imagens” era a ação principal, com ícone decorativo. “Manter proporção” estava na tela, inativo enquanto “Manter dimensões originais” permanecia marcado. Os botões eram “Salvar lote em ZIP”, “Salvar seleção” e “Salvar em pasta”.
+- `horizontal.png`, 200×100 e 566 B, com largura máxima 100: 100×50, 98 B, estado concluído, “Economizou 468 B · 82,7%”.
+- O arquivo salvo em pasta temporária tem 98 bytes, assinatura PNG e dimensões 100×50. O original de teste continuou com 566 bytes.
+
+Não foram repetidos, nesta versão, pasta com subpastas, JPEG, WebP, cancelamento, permissão negada e desinstalação. `Disable-NetAdapter` no Ethernet retornou “Acesso negado.” de novo. O adaptador permaneceu ligado, então o processamento sem rede continua pendente.
+
 ## Não iniciado
 
 - AVIF e modo automático.
@@ -64,7 +74,7 @@ Não foram repetidos, nesta versão, o cancelamento longo, a pasta sem permissã
 
 ## Próximo passo
 
-A etapa 1 continua aberta: faltam fotos reais, EXIF, arquivos perto dos limites e o arraste de pasta pelo Explorer. A PWA do preview foi recarregada sem rede; o diálogo nativo de instalação e a janela instalada da PWA continuam pendentes. O instalador 0.1.1 processou PNG, JPEG e WebP no WebView2 e salvou ZIP e pasta, mas não contém o redimensionamento por lado nem os ícones desta data. Falta abrir esse aplicativo com a rede desligada. AVIF não começou.
+A etapa 1 continua aberta: faltam fotos reais, EXIF, arquivos perto dos limites e o arraste de pasta pelo Explorer. A PWA do preview foi recarregada sem rede; o diálogo nativo de instalação e a janela instalada da PWA continuam pendentes. O instalador 0.1.2 está instalado neste computador e processou um PNG de teste com limite de largura. Falta abrir esse aplicativo com a rede desligada. AVIF não começou.
 
 ## Roteiro para resize e comparação
 
@@ -77,15 +87,15 @@ A etapa 1 continua aberta: faltam fotos reais, EXIF, arquivos perto dos limites 
 ## Roteiro para a versão instalada
 
 1. Encerre `npm run dev` e `npm run preview`.
-2. Execute `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.1_x64-setup.exe`. A instalação é por usuário e o instalador não está assinado. A cópia 0.1.0 no mesmo diretório é o build anterior.
-3. Desconecte a rede e abra o atalho PixelLeve, sem subir o Vite. Este passo ainda não foi executado na 0.1.1: `Disable-NetAdapter` retornou acesso negado. Se o WebView2 Evergreen não existir, o instalador tenta baixar o bootstrapper e essa etapa precisa de rede antes.
+2. Execute `src-tauri/target/release/bundle/nsis/PixelLeve_0.1.2_x64-setup.exe`. A instalação é por usuário e o instalador não está assinado. As cópias 0.1.1 e 0.1.0 no mesmo diretório são builds anteriores.
+3. Desconecte a rede e abra o atalho PixelLeve, sem subir o Vite. Este passo ainda não foi executado na 0.1.2: `Disable-NetAdapter` retornou acesso negado. Se o WebView2 Evergreen não existir, o instalador tenta baixar o bootstrapper e essa etapa precisa de rede antes.
 4. Escolha um PNG com transparência, um JPEG e um WebP. Redimensione. Confira se o original no disco não mudou.
 5. Escolha uma pasta com subpastas e dois arquivos de mesmo nome. Cancele um diálogo e repita a escolha.
 6. Salve uma imagem, o ZIP e os resultados numa pasta. Repita um nome que já exista na pasta de saída e confira o sufixo, sem sobrescrita silenciosa.
 7. Tente uma pasta sem permissão de leitura. A operação deve falhar com aviso, sem descartar o restante da sessão.
 8. Desinstale pelo `uninstall.exe` em `%LOCALAPPDATA%\PixelLeve` quando o roteiro terminar.
 
-Os itens 4 a 8 da 0.1.0 foram executados em 9 de outubro de 2026 com a rede disponível. Na 0.1.1, em 10 de outubro, foram repetidos de forma curta o layout, PNG com transparência e redimensionamento, JPEG, WebP, pasta com subpastas, salvamento individual, ZIP, pasta de saída e a preservação dos originais. O item 3, com a rede desligada, continua pendente.
+Os itens 4 a 8 da 0.1.0 foram executados em 9 de outubro de 2026 com a rede disponível. Na 0.1.1, em 10 de outubro, foram repetidos de forma curta o layout, PNG com transparência e redimensionamento, JPEG, WebP, pasta com subpastas, salvamento individual, ZIP, pasta de saída e a preservação dos originais. Na 0.1.2, em 12 de outubro, foram conferidos o layout com ícones, o controle de proporção, a compressão de `horizontal.png` e o salvamento do resultado. O item 3, com a rede desligada, continua pendente.
 
 ## Registro de execução
 
@@ -104,6 +114,7 @@ Os itens 4 a 8 da 0.1.0 foram executados em 9 de outubro de 2026 com a rede disp
 | 2026-10-10 | Tela compacta | Node 24.18.0, npm 11.16.0. `npx vitest run`, `npx eslint .`, `npm run build`, `npx playwright test` no preview `http://127.0.0.1:4173`. `npm run desktop:dev` no WebView2, sem gerar instalador | Vitest: 40. Lint sem erros. Build web Vite 8.3.4, CSS `index-CGZc8qMN.css` com Segoe UI, precache de 20 entradas e 1897,15 KiB. Playwright: 26 testes. O mesmo CSS entrou em `dist-desktop`. Preview: vazio, fila, “Economizou 1,7 KB · 88%” (1,9 KB → 231 B), JPEG “Aumentou 251 B · 306,1%” (82 B → 333 B), “Economia zero” em 152 B → 152 B, falha de PNG truncado, cancelamento e comparação. Sem rolagem horizontal em 1440, 1024 e 390 px, nem na emulação de zoom 200% (viewport CSS de 720 px). Tab alcançou as ações com contorno de 3 px. No `desktop:dev`, a barra de instalação não apareceu; `texto.png` ficou 151 B → 107 B, “Economizou 44 B · 29,1%”, com “Salvar lote em ZIP” em destaque | O instalador das 17:51 não tem esta tela. Processar o aplicativo instalado sem rede continua pendente. Pendências manuais da etapa 1 e a instalação nativa da PWA permanecem |
 | 2026-10-10 | Instalador 0.1.1 | `npm run desktop:build`. Vite e preview parados. Instalação `/S` e abertura pelo atalho. WebView2 154.0.4258.62. A interface foi conduzida pela porta de depuração, só nesta prova | `PixelLeve_0.1.1_x64-setup.exe`, 2.617.614 bytes, SHA-256 `91961E3CEDBB4C7687583D2B3F1FB0145D86A03F12AF1A6E54D9F7480AEA073A`, 01:04, `NotSigned`. Frontend desktop com 44 módulos, sete WASM e CSS `index-CGZc8qMN.css`, sem service worker. PNG 32×32 com transparência, 123→395 em JPEG 16×16, “Aumentou 272 B · 221,1%”. WebP 123→120. Importação de JPEG, WebP e PNG. Pasta com duas imagens e um `nota.txt` ignorado. ZIP de 528 bytes e pasta de saída com `dois/foto.png` 107 e `um/foto.png` 199. Lote “Economizou 5,3 KB · 94,6%”. Originais com o mesmo SHA-256. Sem barra da PWA | Não repetiu cancelamento longo, pasta sem permissão nem desinstalação da 0.1.0. `Disable-NetAdapter` no Ethernet retornou acesso negado; processar sem rede continua pendente. Pendências manuais da etapa 1, a instalação nativa da PWA e o AVIF permanecem |
 | 2026-10-12 | Proporção e ícones | Node 24.18.0, npm 11.16.0. `npx vitest run`, `npx eslint src tests`, `npm run test:motor` no preview `http://127.0.0.1:4173`. `npm run desktop:dev` no WebView2, porta de depuração só nesta prova. Sem instalador novo | Vitest: 39. Lint sem erros. Build web Vite 8.3.4, CSS `index-CA0w-GVd.css`, precache de 20 entradas e 1909,09 KiB. Playwright: 28 testes. Largura 100 em 200×100 saiu 100×50; altura 80 em 100×200 saiu 40×80; imagem menor que o limite permaneceu; lote com largura 50 saiu 50×25 e 50×100; a alternância guardou 100 e 80; modo exato de 200×100 para 40×40; ampliação de 40×30 para 80×30 recusada; reprocessamento do original; PNG transparente 16×16; ZIP 100×50; limite congelado no item em andamento. No preview: vazio com “Escolher imagens” em destaque, processando com “Cancelar” em destaque, concluído 566 B → 98 B e “Economizou 468 B · 82,7%”, ZIP em destaque e altura “Automática por imagem”. Sem rolagem horizontal em 1440 e 390 px. No `desktop:dev`: sem barra de instalação, “Salvar lote em ZIP”, “Salvar seleção” e “Salvar em pasta”; controles de resize inativos com “Manter dimensões originais” marcado; janela de 1120 px e emulação de 375 px sem rolagem horizontal | O instalador 0.1.1 não contém esta tela. Processar sem rede, fotos reais, EXIF, arraste de pasta no Explorer, arquivos perto dos limites, pico de memória, diálogo nativo da PWA e AVIF continuam pendentes |
+| 2026-10-12 | Instalador 0.1.2 | Commit `c78b01a` em `main`. `npm run desktop:build`. Vite e preview parados. Instalação `/S` por cima da 0.1.1. Abertura pelo atalho. Porta de depuração só nesta prova | `PixelLeve_0.1.2_x64-setup.exe`, 2.622.107 bytes, SHA-256 `89FCA03F8D8207EE38F2CBF2359D6379BB8BB93F074FFEF2BAC2C2F9E099DB41`, 11:07, `NotSigned`. Executável instalado com produto 0.1.2. Frontend desktop com CSS `index-CA0w-GVd.css` e sete WASM, sem service worker. `horizontal.png` 566 B → 98 B, 200×100 → 100×50, “Economizou 468 B · 82,7%”. Arquivo salvo com 98 bytes e PNG 100×50. Original de teste permaneceu com 566 bytes. Sem barra da PWA | Não repetiu pasta, JPEG, WebP, cancelamento, permissão nem desinstalação. `Disable-NetAdapter` retornou acesso negado e o Ethernet continuou ligado. Fotos reais, EXIF, Explorer, limites, pico de memória, PWA nativa e AVIF continuam pendentes |
 
 O download do Chromium headless do Playwright falhou neste ambiente com `SELF_SIGNED_CERT_IN_CHAIN`. Os testes usaram o Google Chrome instalado (`channel: 'chrome'` no `playwright.config.ts`). O Chrome da máquina também recebeu pedidos do Kaspersky para scripts locais; o teste ignora esse host. O bundle da aplicação não referencia Kaspersky, analytics ou CDN. Não foi medido se o antivírus inspeciona o conteúdo dos arquivos fora do navegador.
 
@@ -111,4 +122,4 @@ A etapa 1 não está validada por completo. Redimensionar, zoom e slider estão 
 
 A PWA está no build web de produção. `npm run dev` não registra service worker. O Chrome automatizado confirmou manifesto, ícones PNG, worker ativo, precache dos codecs, recarga sem rede, processamento e ZIP. Também confirmou o bloqueio da atualização durante o processamento, o cancelamento com resultado concluído e o aceite que recarrega e descarta a sessão. Não confirmou o diálogo nativo de instalação nem o fechamento e a reabertura da janela instalada da PWA.
 
-O desktop reutiliza a mesma interface e o mesmo motor. O instalador atual é a 0.1.1, sem assinatura e sem release pública. Ele não recebe sozinho o redimensionamento por lado nem os ícones de 12 de outubro. A 0.1.0 permanece como build anterior e os testes dela não valem para a 0.1.1. Se o WebView2 Evergreen não estiver presente, o modo `downloadBootstrapper` tenta baixá-lo. A 0.1.1 foi exercitada no WebView2 com a rede disponível; a abertura com a rede desligada continua pendente. AVIF não foi implementado. O site não foi publicado.
+O desktop reutiliza a mesma interface e o mesmo motor. O instalador atual é a 0.1.2, sem assinatura e sem release pública. A 0.1.1 e a 0.1.0 permanecem como builds anteriores e os testes delas não valem para a 0.1.2. Se o WebView2 Evergreen não estiver presente, o modo `downloadBootstrapper` tenta baixá-lo. A 0.1.2 foi instalada e exercitada com a rede disponível; a abertura com a rede desligada continua pendente. AVIF não foi implementado. O site não foi publicado.
